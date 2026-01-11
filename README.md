@@ -29,6 +29,8 @@ A terminal-based ASCII art animation system featuring a "talking head" character
 - **Effect CLI Controls** - Individual effect toggles and intensity parameters with built-in presets
 - **Configuration System** - YAML/JSON config files with auto-discovery and preset management
 - **Performance Optimization** - Quality presets for different hardware capabilities
+- **Ready-Made Demo Scripts** - Shell scripts for easy testing (check prereqs, install, run demos)
+- **Edge Detection** - Crisp feature boundaries for clear facial recognition (enabled by default)
 - **Markdown Tutoring** - Read and explain text/markdown files aloud
 - **Color Support** - Rainbow effects and custom color schemes
 - **Cross-Platform** - Works on Linux, macOS, and Windows
