@@ -67,13 +67,13 @@ python -m pip install --upgrade pip --quiet
 echo ""
 echo "Installing dependencies..."
 if [ "$USE_UV" = true ]; then
-    uv pip install -r "$PROJECT_DIR/requirements.txt"
+    uv pip install -r "$SCRIPT_DIR/requirements.txt"
     # Install package in editable mode
     if [ -f "$PROJECT_DIR/pyproject.toml" ]; then
         uv pip install -e "$PROJECT_DIR"
     fi
 else
-    pip install -r "$PROJECT_DIR/requirements.txt"
+    pip install -r "$SCRIPT_DIR/requirements.txt"
     # Install package in editable mode
     if [ -f "$PROJECT_DIR/pyproject.toml" ]; then
         pip install -e "$PROJECT_DIR"

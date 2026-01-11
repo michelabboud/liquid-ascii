@@ -2,13 +2,15 @@
 
 Ready-made shell scripts to quickly test and demonstrate Liquid ASCII features.
 
+The demo folder is self-contained with its own `requirements.txt` and uses **uv** for fast installation (10-100x faster than pip). Falls back to pip if uv is not available.
+
 ## Quick Start
 
 ```bash
 # 1. Check prerequisites
 ./demo/check_prereqs.sh
 
-# 2. Install dependencies
+# 2. Install dependencies (uses uv if available)
 ./demo/install.sh
 
 # 3. Run a demo
@@ -22,7 +24,8 @@ Ready-made shell scripts to quickly test and demonstrate Liquid ASCII features.
 | Script | Description |
 |--------|-------------|
 | `check_prereqs.sh` | Check if Python 3.11+, terminal size, audio, and network are available |
-| `install.sh` | Create virtual environment and install all dependencies |
+| `install.sh` | Create virtual environment with uv and install dependencies from demo/requirements.txt |
+| `requirements.txt` | Demo-specific dependencies (self-contained) |
 
 ### Demos
 
