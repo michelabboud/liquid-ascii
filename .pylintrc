@@ -1,0 +1,131 @@
+[MASTER]
+# Use multiple processes to speed up Pylint
+jobs=0
+
+# Allow loading of arbitrary C extensions
+unsafe-load-any-extension=no
+
+# Pickle collected data for later comparisons
+persistent=yes
+
+# List of plugins (as comma separated values of python module names)
+load-plugins=
+
+# Ignore optional dependencies that may not be installed
+ignored-modules=soundfile,sounddevice,edge_tts,blessed,pytest
+
+[MESSAGES CONTROL]
+# Disable the following checks as they're too strict for this project
+# or are false positives:
+disable=
+    # Import issues
+    wrong-import-position,          # C0413 - imports after sys.path manipulation in examples
+    import-outside-toplevel,        # C0415 - intentional lazy imports for optional deps
+    import-error,                   # E0401 - optional dependencies
+
+    # Complexity checks that are acceptable for this project
+    too-many-locals,                # R0914 - complex functions naturally have many vars
+    too-many-branches,              # R0912 - acceptable complexity
+    too-many-statements,            # R0915 - main functions are naturally long
+    too-many-arguments,             # R0913 - some functions need many parameters
+    too-many-positional-arguments,  # R0917 - acceptable for this project
+    too-many-instance-attributes,   # R0902 - acceptable for complex classes
+    too-many-return-statements,     # R0911 - acceptable
+    too-many-lines,                 # C0302 - main.py is intentionally large
+
+    # Style preferences
+    unnecessary-pass,               # W0107 - pass statements in abstract methods are clear
+    no-else-return,                 # R1705 - else after return is sometimes clearer
+
+    # False positives from dynamic attributes
+    no-member,                      # E1101 - Pylint doesn't understand dynamic attrs
+    no-value-for-parameter,         # E1120 - false positives
+
+    # Exception handling preferences
+    broad-exception-caught,         # W0718 - catching Exception is acceptable in cleanup
+    broad-exception-raised,         # W0719 - raising Exception is acceptable here
+
+    # File handling
+    unspecified-encoding,           # W1514 - default encoding is fine for our use case
+
+    # Subprocess
+    subprocess-run-check,           # W1510 - check=True not always needed
+
+    # Other
+    unused-argument,                # W0613 - callbacks often have unused args
+    redefined-outer-name,           # W0621 - acceptable in local scopes
+    consider-using-with,            # R1732 - not always applicable
+    consider-using-enumerate,       # C0200 - range(len()) is sometimes clearer
+    duplicate-code,                 # R0801 - some duplication is acceptable
+    too-few-public-methods,         # R0903 - data classes are fine with 1 method
+    global-statement,               # W0603 - acceptable for module-level state
+    attribute-defined-outside-init, # W0201 - acceptable for lazy initialization
+    nested-min-max,                 # W3301 - style preference
+
+[REPORTS]
+# Set the output format
+output-format=text
+
+# Include message's id in output
+include-ids=yes
+
+# Activate score evaluation
+score=yes
+
+[FORMAT]
+# Maximum number of characters on a single line (increased from default 100)
+max-line-length=120
+
+# Maximum number of lines in a module (increased from default 1000)
+max-module-lines=2000
+
+[BASIC]
+# Good variable names which should always be accepted
+good-names=i,j,k,x,y,z,v,p,q,R,r,l,dt,dx,dy,dz,sr,_
+
+# Regular expression matching correct constant names
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+[DESIGN]
+# Maximum number of arguments for function / method (increased)
+max-args=10
+
+# Maximum number of locals for function / method body (increased)
+max-locals=25
+
+# Maximum number of return / yield for function / method body (increased)
+max-returns=10
+
+# Maximum number of branch for function / method body (increased)
+max-branches=20
+
+# Maximum number of statements in function / method body (increased)
+max-statements=75
+
+# Maximum number of attributes for a class (increased)
+max-attributes=15
+
+[SIMILARITIES]
+# Minimum lines number of a similarity (increased to reduce false positives)
+min-similarity-lines=10
+
+# Ignore imports when computing similarities
+ignore-imports=yes
+
+[TYPECHECK]
+# List of members which are set dynamically and missed by Pylint
+generated-members=
+    numpy.*,
+    sounddevice.*,
+    blessed.*,
+    pygame.*
+
+# List of classes names for which member attributes should not be checked
+ignored-classes=
+    optparse.Values,
+    thread._local,
+    _thread._local
+
+[VARIABLES]
+# A regular expression matching the name of dummy variables (i.e. expected to not be used)
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
