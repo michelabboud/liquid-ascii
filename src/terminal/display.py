@@ -247,6 +247,11 @@ class Display:
                     dt = self.wait_for_frame()
                     frame = update_fn(dt)
 
+                    # Check if update function signaled to stop (by returning None)
+                    if frame is None:
+                        running = False
+                        break
+
                     status = None
                     if show_fps:
                         status = f"FPS: {self.get_fps():.1f} | Press 'q' to quit"
