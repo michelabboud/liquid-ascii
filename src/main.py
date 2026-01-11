@@ -14,10 +14,95 @@ from typing import Optional
 from .renderer import Raymarcher, Camera, ASCIIShader, QualityLevel, AdaptiveQualityController
 from .model import Head, CharacterHead, AnimationController
 from .model.visemes import VisemeController
-from .terminal import Display, ColorMode, RainbowColors, PRESET_SCHEMES
+from .terminal import Display, ColorMode, RainbowColors, PRESET_SCHEMES, EffectsCompositor
 from .audio import EdgeTTSEngine, AudioPlayer, LipSyncGenerator
 from .tutor import TextTutor
 from .chat import ChatSession, list_available_backends
+from .config import (
+    load_config,
+    find_config_file,
+    load_preset,
+    save_preset,
+    list_presets,
+    AppConfig,
+    RenderConfig,
+    CharacterConfig,
+    EffectsConfig,
+    ChatConfig,
+)
+
+
+# Effect Presets
+EFFECT_PRESETS = {
+    "cyberpunk": {
+        "description": "Cyberpunk aesthetic with glitch and scanlines",
+        "effects": {
+            "glitch": True,
+            "glitch_intensity": 0.15,
+            "scanlines": True,
+            "scanline_intensity": 0.6,
+            "particles": True,
+            "max_particles": 30,
+        },
+    },
+    "matrix": {
+        "description": "Matrix-style falling digital rain",
+        "effects": {
+            "matrix_rain": True,
+            "matrix_density": 0.4,
+            "scanlines": True,
+            "scanline_intensity": 0.3,
+            "glitch": True,
+            "glitch_intensity": 0.05,
+        },
+    },
+    "retro": {
+        "description": "Retro CRT monitor simulation",
+        "effects": {
+            "scanlines": True,
+            "scanline_intensity": 0.7,
+            "depth_of_field": True,
+            "dof_focus": 3.5,
+            "dof_strength": 0.3,
+        },
+    },
+    "glitchy": {
+        "description": "Heavy glitch and distortion effects",
+        "effects": {
+            "glitch": True,
+            "glitch_intensity": 0.25,
+            "trails": True,
+            "trail_length": 8,
+            "particles": True,
+            "max_particles": 40,
+        },
+    },
+    "minimal": {
+        "description": "Minimal effects - just particles",
+        "effects": {
+            "particles": True,
+            "max_particles": 20,
+        },
+    },
+    "showcase": {
+        "description": "All effects enabled for demonstration",
+        "effects": {
+            "particles": True,
+            "max_particles": 50,
+            "trails": True,
+            "trail_length": 5,
+            "glitch": True,
+            "glitch_intensity": 0.08,
+            "scanlines": True,
+            "scanline_intensity": 0.4,
+            "matrix_rain": True,
+            "matrix_density": 0.2,
+            "depth_of_field": True,
+            "dof_focus": 3.5,
+            "dof_strength": 0.4,
+        },
+    },
+}
 
 
 def create_head_renderer(
@@ -55,6 +140,81 @@ def create_head_renderer(
     return head, raymarcher
 
 
+def setup_effects_from_args(args, width: int, height: int):
+    """
+    Create and configure EffectsCompositor from CLI arguments.
+
+    Args:
+        args: Parsed command-line arguments
+        width: Display width in characters
+        height: Display height in characters
+
+    Returns:
+        Configured EffectsCompositor or None if no effects enabled
+    """
+    # Apply preset first if specified
+    effect_config = {}
+    if args.effect_preset:
+        if args.effect_preset in EFFECT_PRESETS:
+            effect_config = EFFECT_PRESETS[args.effect_preset]["effects"].copy()
+
+    # Override with individual flags (individual flags take precedence)
+    if args.particles:
+        effect_config["particles"] = True
+        effect_config["max_particles"] = args.max_particles
+
+    if args.trails:
+        effect_config["trails"] = True
+        effect_config["trail_length"] = args.trail_length
+
+    if args.glitch:
+        effect_config["glitch"] = True
+        effect_config["glitch_intensity"] = args.glitch_intensity
+
+    if args.scanlines:
+        effect_config["scanlines"] = True
+        effect_config["scanline_intensity"] = args.scanline_intensity
+
+    if args.matrix_rain:
+        effect_config["matrix_rain"] = True
+        effect_config["matrix_density"] = args.matrix_density
+
+    if args.depth_of_field:
+        effect_config["depth_of_field"] = True
+        effect_config["dof_focus"] = args.dof_focus
+        effect_config["dof_strength"] = args.dof_strength
+
+    # If no effects enabled, return None
+    if not effect_config:
+        return None
+
+    # Create compositor and configure effects
+    compositor = EffectsCompositor(width, height)
+
+    if effect_config.get("particles"):
+        compositor.enable_particles(max_particles=effect_config.get("max_particles", 50))
+
+    if effect_config.get("trails"):
+        compositor.enable_trails(length=effect_config.get("trail_length", 5))
+
+    if effect_config.get("glitch"):
+        compositor.enable_glitch(intensity=effect_config.get("glitch_intensity", 0.1))
+
+    if effect_config.get("scanlines"):
+        compositor.enable_scanlines(intensity=effect_config.get("scanline_intensity", 0.5))
+
+    if effect_config.get("matrix_rain"):
+        compositor.enable_matrix_rain(density=effect_config.get("matrix_density", 0.3))
+
+    if effect_config.get("depth_of_field"):
+        compositor.enable_depth_of_field(
+            focus=effect_config.get("dof_focus", 3.5),
+            strength=effect_config.get("dof_strength", 0.5)
+        )
+
+    return compositor
+
+
 def run_demo_mode(
     character: str = "default",
     color_scheme: str = "default",
@@ -63,6 +223,7 @@ def run_demo_mode(
     expression: Optional[str] = None,
     interactive: bool = False,
     quality: str = "high",
+    compositor: Optional[EffectsCompositor] = None,
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -75,6 +236,7 @@ def run_demo_mode(
         expression: Initial expression
         interactive: Enable keyboard controls
         quality: Quality level (low/medium/high/ultra/auto)
+        compositor: Optional effects compositor for visual effects
     """
     from .terminal import InteractiveInputHandler, InteractiveController, InputCommand, PRESET_SCHEMES
 
@@ -155,6 +317,11 @@ def run_demo_mode(
             if controller.is_paused():
                 sdf = head.get_sdf()
                 frame = raymarcher.render_frame(sdf)
+
+                # Apply effects if compositor is available
+                if compositor:
+                    frame = compositor.render(frame)
+
                 # Show pause indicator
                 if input_handler.is_help_visible():
                     return input_handler.get_help_text()
@@ -164,6 +331,11 @@ def run_demo_mode(
         head.update(dt)
         sdf = head.get_sdf()
         frame = raymarcher.render_frame(sdf)
+
+        # Apply effects if compositor is available
+        if compositor:
+            compositor.update(dt)
+            frame = compositor.render(frame)
 
         # Overlay help if visible
         if interactive and input_handler and input_handler.is_help_visible():
@@ -796,6 +968,116 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         help="List available LLM backends"
     )
 
+    # Visual Effects
+    parser.add_argument(
+        "--particles",
+        action="store_true",
+        help="Enable particle system effect"
+    )
+    parser.add_argument(
+        "--max-particles",
+        type=int,
+        default=50,
+        help="Maximum number of particles (default: 50)"
+    )
+    parser.add_argument(
+        "--trails",
+        action="store_true",
+        help="Enable motion trail effect"
+    )
+    parser.add_argument(
+        "--trail-length",
+        type=int,
+        default=5,
+        help="Motion trail length in frames (default: 5)"
+    )
+    parser.add_argument(
+        "--glitch",
+        action="store_true",
+        help="Enable glitch/distortion effect"
+    )
+    parser.add_argument(
+        "--glitch-intensity",
+        type=float,
+        default=0.1,
+        help="Glitch effect intensity 0-1 (default: 0.1)"
+    )
+    parser.add_argument(
+        "--scanlines",
+        action="store_true",
+        help="Enable CRT scanline effect"
+    )
+    parser.add_argument(
+        "--scanline-intensity",
+        type=float,
+        default=0.5,
+        help="Scanline intensity 0-1 (default: 0.5)"
+    )
+    parser.add_argument(
+        "--matrix-rain",
+        action="store_true",
+        help="Enable Matrix-style falling rain effect"
+    )
+    parser.add_argument(
+        "--matrix-density",
+        type=float,
+        default=0.3,
+        help="Matrix rain density 0-1 (default: 0.3)"
+    )
+    parser.add_argument(
+        "--depth-of-field",
+        action="store_true",
+        help="Enable depth-of-field blur effect"
+    )
+    parser.add_argument(
+        "--dof-focus",
+        type=float,
+        default=3.5,
+        help="Depth-of-field focus distance (default: 3.5)"
+    )
+    parser.add_argument(
+        "--dof-strength",
+        type=float,
+        default=0.5,
+        help="Depth-of-field blur strength 0-1 (default: 0.5)"
+    )
+    parser.add_argument(
+        "--effect-preset",
+        type=str,
+        choices=["cyberpunk", "matrix", "retro", "glitchy", "minimal", "showcase"],
+        help="Apply preset effect combination"
+    )
+    parser.add_argument(
+        "--list-effect-presets",
+        action="store_true",
+        help="List available effect presets"
+    )
+
+    # Configuration
+    parser.add_argument(
+        "--config",
+        type=str,
+        metavar="PATH",
+        help="Load configuration from file (.yaml/.json)"
+    )
+    parser.add_argument(
+        "--preset",
+        type=str,
+        metavar="NAME",
+        help="Load configuration preset by name"
+    )
+    parser.add_argument(
+        "--save-preset",
+        type=str,
+        metavar="NAME",
+        help="Save current configuration as preset"
+    )
+    parser.add_argument(
+        "--list-presets",
+        action="store_true",
+        help="List available configuration presets"
+    )
+
     args = parser.parse_args()
 
     # Handle info commands
@@ -865,6 +1147,119 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             print("  2. OpenAI: Set OPENAI_API_KEY environment variable")
         return
 
+    if args.list_effect_presets:
+        print("Available effect presets:")
+        print("=" * 70)
+        for name, preset in EFFECT_PRESETS.items():
+            print(f"  {name:12} - {preset['description']}")
+            print(f"               Effects: {', '.join(preset['effects'].keys())}")
+        print()
+        print("Usage: ./dev.sh run --effect-preset <preset-name>")
+        print("       ./dev.sh run --effect-preset cyberpunk")
+        return
+
+    if args.list_presets:
+        print("Available configuration presets:")
+        print("=" * 70)
+        presets = list_presets()
+        if presets:
+            for preset_info in presets:
+                print(f"  {preset_info['name']:12} - {preset_info['description']}")
+            print()
+            print("Usage: ./dev.sh run --preset <preset-name>")
+            print("       ./dev.sh run --preset my-config")
+        else:
+            print("  No presets found.")
+            print()
+            print("Create a preset with: ./dev.sh run --save-preset <name>")
+        return
+
+    # Load configuration
+    config = AppConfig()  # Start with defaults
+
+    # 1. Load from config file if specified or found
+    if args.config:
+        config_path = Path(args.config)
+        try:
+            loaded_config = load_config(config_path)
+            if loaded_config:
+                config = config.merge(loaded_config)
+                print(f"Loaded config from: {config_path}")
+        except Exception as e:
+            print(f"Error loading config: {e}", file=sys.stderr)
+            return
+    else:
+        # Auto-discover config file
+        config_path = find_config_file()
+        if config_path:
+            try:
+                loaded_config = load_config(config_path)
+                if loaded_config:
+                    config = config.merge(loaded_config)
+                    print(f"Loaded config from: {config_path}")
+            except Exception as e:
+                print(f"Warning: Error loading config from {config_path}: {e}", file=sys.stderr)
+
+    # 2. Load from preset if specified (overrides config file)
+    if args.preset:
+        try:
+            preset_config = load_preset(args.preset)
+            config = config.merge(preset_config)
+            print(f"Loaded preset: {args.preset}")
+        except FileNotFoundError:
+            print(f"Error: Preset not found: {args.preset}", file=sys.stderr)
+            return
+        except Exception as e:
+            print(f"Error loading preset: {e}", file=sys.stderr)
+            return
+
+    # 3. Override config with CLI arguments (CLI args have highest priority)
+    # This happens implicitly - we use args values below
+
+    # 4. Handle save preset (if requested, save and exit)
+    if args.save_preset:
+        # Build config from current args
+        save_config = AppConfig(
+            render=RenderConfig(
+                quality=args.quality,
+                fps=args.fps,
+                color_scheme=args.scheme,
+                rainbow_mode=args.rainbow,
+            ),
+            character=CharacterConfig(
+                character=args.character,
+                expression=args.expression,
+                voice=args.voice,
+            ),
+            effects=EffectsConfig(
+                particles=args.particles,
+                max_particles=args.max_particles,
+                trails=args.trails,
+                trail_length=args.trail_length,
+                glitch=args.glitch,
+                glitch_intensity=args.glitch_intensity,
+                scanlines=args.scanlines,
+                scanline_intensity=args.scanline_intensity,
+                matrix_rain=args.matrix_rain,
+                matrix_density=args.matrix_density,
+                depth_of_field=args.depth_of_field,
+                dof_focus=args.dof_focus,
+                dof_strength=args.dof_strength,
+            ),
+            chat=ChatConfig(
+                llm_backend=args.llm_backend if hasattr(args, 'llm_backend') else "ollama",
+                llm_model=args.llm_model if hasattr(args, 'llm_model') else None,
+                enable_voice=args.chat_voice if hasattr(args, 'chat_voice') else False,
+            ),
+        )
+        try:
+            save_preset(args.save_preset, save_config)
+            print(f"Preset saved: {args.save_preset}")
+            return
+        except Exception as e:
+            print(f"Error saving preset: {e}", file=sys.stderr)
+            return
+
     # Handle modes
     if args.static:
         run_static_mode(
@@ -902,6 +1297,13 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             quality=args.quality,
         ))
     else:
+        # Set up effects compositor if any effects are enabled
+        display_temp = Display()
+        width, height = display_temp.get_size()
+        width = min(width, 100)
+        height = min(height, 50)
+        compositor = setup_effects_from_args(args, width, height)
+
         run_demo_mode(
             character=args.character,
             color_scheme=args.scheme,
@@ -910,6 +1312,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             expression=args.expression,
             interactive=args.interactive,
             quality=args.quality,
+            compositor=compositor,
         )
 
 

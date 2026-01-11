@@ -26,6 +26,8 @@ A terminal-based ASCII art animation system featuring a "talking head" character
 - **Voice-Enabled Chat** - AI speaks its responses aloud with perfect lip synchronization
 - **12 Character Presets** - Unique appearances and personalities (robot, alien, cat, dog, baby, elder, skull, etc.)
 - **Visual Effects** - Particles, motion trails, glitch effects, scanlines, matrix rain
+- **Effect CLI Controls** - Individual effect toggles and intensity parameters with built-in presets
+- **Configuration System** - YAML/JSON config files with auto-discovery and preset management
 - **Performance Optimization** - Quality presets for different hardware capabilities
 - **Markdown Tutoring** - Read and explain text/markdown files aloud
 - **Color Support** - Rainbow effects and custom color schemes
@@ -337,6 +339,7 @@ Comprehensive guides for all features:
 - **[INSTALL.md](INSTALL.md)** - Detailed installation instructions
 - **[FEATURES.md](docs/FEATURES.md)** - Stages 5-8 features (performance, characters, animations, effects)
 - **[STAGES-9-11.md](docs/STAGES-9-11.md)** - Stages 9-12 features (voice personality, distribution, chat mode, voice-chat)
+- **[STAGES-13-14.md](docs/STAGES-13-14.md)** - Stages 13-14 features (effect CLI flags, configuration system)
 - **[BUILD.md](BUILD.md)** - Building, packaging, and distribution guide
 - **[TODO.md](TODO.md)** - Development roadmap and future features
 - **[CLAUDE.md](CLAUDE.md)** - Developer guidance for Claude Code

@@ -1,0 +1,111 @@
+# Liquid ASCII Configuration File Example
+#
+# This file demonstrates all available configuration options.
+# Copy this file to one of the following locations:
+#   - ./.liquid-ascii.yaml (current directory)
+#   - ~/.liquid-ascii.yaml (home directory)
+#   - /etc/liquid-ascii/liquid-ascii.yaml (system-wide, Linux only)
+#
+# Or load explicitly with: ./dev.sh run --config path/to/config.yaml
+#
+# YAML and JSON formats are both supported.
+
+# Rendering configuration
+render:
+  quality: high              # Quality level: low, medium, high, ultra, auto
+  fps: 15.0                  # Target frames per second
+  color_scheme: default      # Color scheme: default, pale, dark, robot, alien, ghost, sunset, ocean, neon, monochrome
+  rainbow_mode: null         # Rainbow mode: horizontal, vertical, radial, diagonal, wave, time (or null)
+
+# Character configuration
+character:
+  character: default         # Character preset: default, round, tall, wide, robot, cute, alien, cat, dog, baby, elder, skull
+  expression: neutral        # Initial expression: neutral, happy, sad, angry, surprised, wink, talking
+  voice: null                # TTS voice name (null = auto-select per character)
+
+# Visual effects configuration
+effects:
+  # Particle system
+  particles: false           # Enable particle system effect
+  max_particles: 50          # Maximum number of particles
+
+  # Motion trails
+  trails: false              # Enable motion trail effect
+  trail_length: 5            # Motion trail length in frames
+
+  # Glitch effect
+  glitch: false              # Enable glitch/distortion effect
+  glitch_intensity: 0.1      # Glitch effect intensity (0-1)
+
+  # Scanlines
+  scanlines: false           # Enable CRT scanline effect
+  scanline_intensity: 0.5    # Scanline intensity (0-1)
+
+  # Matrix rain
+  matrix_rain: false         # Enable Matrix-style falling rain effect
+  matrix_density: 0.3        # Matrix rain density (0-1)
+
+  # Depth of field
+  depth_of_field: false      # Enable depth-of-field blur effect
+  dof_focus: 3.5             # Depth-of-field focus distance
+  dof_strength: 0.5          # Depth-of-field blur strength (0-1)
+
+# Chat mode configuration
+chat:
+  llm_backend: ollama        # LLM backend: ollama or openai
+  llm_model: null            # LLM model name (null = use default)
+  enable_voice: false        # Enable voice output in chat mode (AI speaks with lip sync)
+
+
+# Example configurations:
+
+# Example 1: Cyberpunk aesthetic
+# render:
+#   quality: high
+#   fps: 15.0
+#   color_scheme: neon
+#   rainbow_mode: null
+# character:
+#   character: robot
+#   expression: neutral
+# effects:
+#   glitch: true
+#   glitch_intensity: 0.15
+#   scanlines: true
+#   scanline_intensity: 0.6
+#   particles: true
+#   max_particles: 30
+
+# Example 2: Retro CRT monitor
+# render:
+#   quality: medium
+#   fps: 12.0
+#   color_scheme: monochrome
+# effects:
+#   scanlines: true
+#   scanline_intensity: 0.7
+#   depth_of_field: true
+#   dof_focus: 3.5
+#   dof_strength: 0.3
+
+# Example 3: Performance optimized for WSL
+# render:
+#   quality: low
+#   fps: 10.0
+#   color_scheme: default
+# effects:
+#   particles: false
+#   trails: false
+#   glitch: false
+
+# Example 4: Voice-enabled chat robot
+# render:
+#   quality: high
+#   color_scheme: robot
+# character:
+#   character: robot
+#   voice: en-US-GuyNeural
+# chat:
+#   llm_backend: ollama
+#   llm_model: llama3.2:latest
+#   enable_voice: true
