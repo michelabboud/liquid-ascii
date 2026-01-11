@@ -1,0 +1,167 @@
+# Docker Compose configuration for Liquid ASCII Art Animation
+# Provides convenient service definitions for different use cases
+
+version: '3.8'
+
+services:
+  # Base service configuration (not run directly)
+  liquid-ascii-base:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: liquid-ascii:latest
+    tty: true
+    stdin_open: true
+    environment:
+      - TERM=xterm-256color
+      - COLUMNS=80
+      - LINES=40
+    devices:
+      - /dev/snd:/dev/snd  # For audio output
+    profiles:
+      - base  # Hidden profile
+
+  # Demo mode - animated idle head
+  demo:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-demo
+    command: []  # Default demo mode
+    profiles:
+      - demo
+
+  # Speak mode - text-to-speech with lip sync
+  speak:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-speak
+    command:
+      - --speak
+      - "Hello! I am a liquid ASCII character. Watch me speak with realistic lip sync!"
+      - --character
+      - default
+      - --quality
+      - high
+    profiles:
+      - speak
+
+  # Interactive mode - user-controlled expressions
+  interactive:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-interactive
+    command:
+      - --interactive
+      - --quality
+      - medium
+    profiles:
+      - interactive
+
+  # Tutor mode - read files aloud
+  tutor:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-tutor
+    command:
+      - --tutor
+      - /app/README.md
+      - --character
+      - elder
+      - --expression
+      - thinking
+    volumes:
+      - ./docs:/app/docs:ro
+      - ./README.md:/app/README.md:ro
+    profiles:
+      - tutor
+
+  # Alien character with rainbow effects
+  alien:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-alien
+    command:
+      - --character
+      - alien
+      - --rainbow
+      - radial
+      - --scheme
+      - neon
+      - --quality
+      - ultra
+    profiles:
+      - alien
+
+  # Cute character with speech
+  cute:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-cute
+    command:
+      - --speak
+      - "Hi there! I'm the cute character! Isn't this amazing?"
+      - --character
+      - cute
+      - --expression
+      - happy
+      - --scheme
+      - pastel
+    profiles:
+      - cute
+
+  # Robot character demo
+  robot:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-robot
+    command:
+      - --speak
+      - "Greetings, human. I am a robotic entity rendered in ASCII format."
+      - --character
+      - robot
+      - --expression
+      - neutral
+      - --scheme
+      - cool
+    profiles:
+      - robot
+
+  # Benchmark performance test
+  benchmark:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-benchmark
+    command:
+      - python
+      - -m
+      - benchmarks.render_benchmark
+    entrypoint: []
+    profiles:
+      - benchmark
+
+  # Development environment with shell access
+  dev:
+    extends:
+      service: liquid-ascii-base
+    container_name: liquid-ascii-dev
+    command: /bin/bash
+    entrypoint: []
+    volumes:
+      - .:/app
+    working_dir: /app
+    profiles:
+      - dev
+
+# Usage examples:
+# docker-compose --profile demo up         # Run demo mode
+# docker-compose --profile speak up        # Run speak mode
+# docker-compose --profile interactive up  # Run interactive mode
+# docker-compose --profile tutor up        # Run tutor mode
+# docker-compose --profile alien up        # Run alien character
+# docker-compose --profile cute up         # Run cute character
+# docker-compose --profile robot up        # Run robot character
+# docker-compose --profile benchmark up    # Run benchmarks
+# docker-compose --profile dev up          # Development shell
+#
+# Custom commands:
+# docker-compose run --rm liquid-ascii-base --character baby --speak "Goo goo ga ga"

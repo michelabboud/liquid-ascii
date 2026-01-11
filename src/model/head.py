@@ -400,6 +400,71 @@ class CharacterHead(Head):
         super().__init__(geometry=geometry, **kwargs)
         self.character_name = character_name
 
+    @property
+    def default_voice(self) -> str:
+        """
+        Get the recommended default voice for this character.
+
+        Returns:
+            Voice name suitable for this character's personality
+        """
+        return self._get_character_voice(self.character_name)
+
+    @staticmethod
+    def _get_character_voice(name: str) -> str:
+        """
+        Get recommended voice for a character.
+
+        Voice selections are based on character personality and appearance,
+        matching vocal characteristics to visual design.
+
+        Args:
+            name: Character name
+
+        Returns:
+            Voice ID for edge-tts
+        """
+        voice_map = {
+            # Original characters
+            "default": "en-US-AriaNeural",  # Neutral, pleasant female voice
+            "round": "en-AU-NatashaNeural",  # Warm, welcoming Australian voice
+            "tall": "en-GB-RyanNeural",  # Deep, authoritative British voice
+            "wide": "en-US-DavisNeural",  # Bold, confident male voice
+            "robot": "en-US-GuyNeural",  # Deeper, more mechanical-sounding
+            "cute": "en-US-JennyNeural",  # Higher-pitched, friendly voice
+            # New characters (Stage 6)
+            "alien": "en-US-TonyNeural",  # Serious, otherworldly tone
+            "cat": "en-US-SaraNeural",  # Lighter, playful female voice
+            "dog": "en-US-ChristopherNeural",  # Friendly, enthusiastic male
+            "baby": "en-US-AnaNeural",  # Young-sounding, higher pitch
+            "elder": "en-GB-LibbyNeural",  # Mature, experienced female voice
+            "skull": "en-US-EricNeural",  # Deep, ominous male voice
+        }
+        return voice_map.get(name, "en-US-AriaNeural")
+
+    @staticmethod
+    def get_all_character_voices() -> dict:
+        """
+        Get all character-to-voice mappings.
+
+        Returns:
+            Dictionary mapping character names to default voices
+        """
+        return {
+            "default": "en-US-AriaNeural",
+            "round": "en-AU-NatashaNeural",
+            "tall": "en-GB-RyanNeural",
+            "wide": "en-US-DavisNeural",
+            "robot": "en-US-GuyNeural",
+            "cute": "en-US-JennyNeural",
+            "alien": "en-US-TonyNeural",
+            "cat": "en-US-SaraNeural",
+            "dog": "en-US-ChristopherNeural",
+            "baby": "en-US-AnaNeural",
+            "elder": "en-GB-LibbyNeural",
+            "skull": "en-US-EricNeural",
+        }
+
     def _get_character_geometry(self, name: str) -> HeadGeometry:
         """Get geometry preset for a character."""
         presets = {

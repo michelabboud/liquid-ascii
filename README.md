@@ -21,10 +21,15 @@ A terminal-based ASCII art animation system featuring a "talking head" character
 - **3D ASCII Rendering** - Raymarching with signed distance functions (SDF)
 - **Liquid Smooth Transitions** - Metaball-style smooth unions for organic morphing
 - **Talking Head Animation** - Viseme-based lip synchronization
-- **Text-to-Speech Integration** - Uses Microsoft Edge TTS for high-quality speech
+- **Text-to-Speech Integration** - Uses Microsoft Edge TTS with character-matched voices
+- **Interactive Chat Mode** - Conversation with LLM-powered character personalities (Ollama/OpenAI)
+- **12 Character Presets** - Unique appearances and personalities (robot, alien, cat, dog, baby, elder, skull, etc.)
+- **Visual Effects** - Particles, motion trails, glitch effects, scanlines, matrix rain
+- **Performance Optimization** - Quality presets for different hardware capabilities
 - **Markdown Tutoring** - Read and explain text/markdown files aloud
 - **Color Support** - Rainbow effects and custom color schemes
 - **Cross-Platform** - Works on Linux, macOS, and Windows
+- **Multiple Distribution Methods** - PyPI package, Docker containers, or from source
 
 ## Requirements
 
@@ -47,7 +52,29 @@ See [QUICKSTART.md](QUICKSTART.md) for more examples and the full command refere
 
 ## Installation
 
-**Quick Start** (Recommended - uses [uv](https://github.com/astral-sh/uv) for 10-100x faster installs):
+### Option 1: Install from PyPI (Easiest)
+
+```bash
+pip install liquid-ascii
+liquid-ascii --help
+```
+
+### Option 2: Docker (No Setup Required)
+
+```bash
+# Run demo
+docker run -it --rm ghcr.io/YOURORG/liquid-ascii:latest
+
+# Speak mode
+docker run -it --rm ghcr.io/YOURORG/liquid-ascii:latest --speak "Hello!"
+
+# Or use docker-compose
+docker-compose --profile demo up
+```
+
+### Option 3: From Source (Recommended for Development)
+
+**Quick Start** (uses [uv](https://github.com/astral-sh/uv) for 10-100x faster installs):
 
 ```bash
 # Clone the repository
@@ -101,7 +128,20 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions and troubles
 # or: python -m src.main --tutor README.md
 ```
 
-### With Colors
+### Chat Mode (Interactive Conversation)
+
+```bash
+# Requires Ollama (local) or OpenAI API key
+./dev.sh run --chat --character robot
+
+# With specific backend
+./dev.sh run --chat --llm-backend openai --character alien
+
+# List available backends
+./dev.sh run --list-llm-backends
+```
+
+### With Colors and Effects
 
 ```bash
 # Rainbow effect
@@ -109,6 +149,9 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions and troubles
 
 # Color scheme
 ./dev.sh run --scheme neon
+
+# Quality settings (for performance)
+./dev.sh run --quality low  # Faster on WSL/slower systems
 
 # or: python -m src.main --rainbow horizontal --scheme neon
 ```
@@ -129,16 +172,36 @@ liquid-ascii [options]
 ### Options
 
 ```
---speak, -s TEXT      Text to speak
---tutor, -t FILE      Path to text/markdown file to read aloud
---character, -c NAME  Character preset (default, round, tall, wide, robot, cute)
---scheme NAME         Color scheme (default, pale, dark, robot, alien, ghost, sunset, ocean, neon, monochrome)
---rainbow, -r MODE    Rainbow mode (horizontal, vertical, radial, diagonal, wave)
---voice, -v NAME      TTS voice name (default: en-US-AriaNeural)
---fps NUMBER          Target FPS (default: 15)
---static              Render single static frame
---list-voices         List available TTS voices
---list-schemes        List available color schemes
+# Modes
+--speak, -s TEXT        Text to speak with lip sync
+--tutor, -t FILE        Read and explain text/markdown files aloud
+--chat                  Interactive chat mode with LLM
+--interactive, -i       Enable keyboard controls in demo mode
+--static                Render single static frame
+
+# Character & Appearance
+--character, -c NAME    Character preset (default, round, tall, wide, robot, cute,
+                        alien, cat, dog, baby, elder, skull)
+--expression, -e NAME   Facial expression (neutral, happy, sad, angry, surprised, etc.)
+--scheme NAME           Color scheme (default, pale, dark, robot, alien, ghost,
+                        sunset, ocean, neon, monochrome)
+--rainbow, -r MODE      Rainbow mode (horizontal, vertical, radial, diagonal, wave, time)
+
+# Audio & LLM
+--voice, -v NAME        TTS voice (default: auto-select per character)
+--llm-backend TYPE      LLM backend (ollama or openai)
+--llm-model NAME        LLM model name
+
+# Performance
+--quality, -q LEVEL     Quality preset (low, medium, high, ultra, auto)
+--fps NUMBER            Target FPS (default: 15)
+
+# Information
+--list-voices           List available TTS voices
+--list-schemes          List available color schemes
+--list-expressions      List available facial expressions
+--list-character-voices List character-to-voice mappings
+--list-llm-backends     List available LLM backends
 ```
 
 ### Development Commands
@@ -180,22 +243,32 @@ liquid-ascii/
 │   │   ├── sdf.py      # SDF primitives and operations
 │   │   ├── raymarcher.py
 │   │   ├── shading.py  # ASCII character mapping
-│   │   └── camera.py
+│   │   ├── camera.py
+│   │   └── quality.py  # Performance presets
 │   ├── model/          # Head model and animation
-│   │   ├── head.py     # 3D head composition
+│   │   ├── head.py     # 3D head composition & character presets
 │   │   ├── visemes.py  # Mouth shapes for lip sync
-│   │   └── animation.py
+│   │   ├── animation.py
+│   │   └── gestures.py # Advanced gesture animations
 │   ├── audio/          # TTS and audio playback
 │   │   ├── tts.py      # Edge TTS integration
 │   │   ├── player.py   # Audio playback
 │   │   └── lipsync.py  # Viseme generation
-│   ├── terminal/       # Display and colors
+│   ├── terminal/       # Display and UI
 │   │   ├── display.py
-│   │   └── colors.py
+│   │   ├── colors.py
+│   │   ├── input.py    # Interactive controls
+│   │   └── effects.py  # Visual effects (particles, glitch, etc.)
+│   ├── chat/           # LLM-powered conversation
+│   │   ├── bot.py      # Chat bot controller
+│   │   ├── llm.py      # LLM backends (Ollama, OpenAI)
+│   │   ├── memory.py   # Conversation history
+│   │   └── personality.py  # Character personalities
 │   ├── tutor.py        # Markdown parsing and tutoring
 │   └── main.py         # Entry point
 ├── examples/
-└── docs/
+├── docs/
+└── tests/
 ```
 
 ## How It Works
@@ -228,13 +301,40 @@ def sdf_smooth_union(d1, d2, k=0.1):
 3. Words are mapped to visemes (mouth shapes)
 4. Animation interpolates smoothly between visemes
 
+### Chat Mode
+
+1. User input is sent to LLM (Ollama or OpenAI)
+2. LLM generates response based on character personality
+3. Sentiment analysis determines appropriate expression
+4. Character expression updates dynamically during streaming
+5. Conversation context maintained in memory
+
 ## Dependencies
 
+**Core:**
 - **blessed** - Terminal handling
 - **numpy** - Mathematical operations
 - **edge-tts** - Text-to-speech
 - **sounddevice** - Audio playback
 - **scipy** - Audio file handling
+
+**Chat Mode:**
+- **aiohttp** - Async HTTP for LLM APIs
+- **requests** - Availability checks
+- **Ollama** (optional) - Local LLM inference
+- **OpenAI API key** (optional) - Cloud LLM access
+
+## Documentation
+
+Comprehensive guides for all features:
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick reference for all commands
+- **[INSTALL.md](INSTALL.md)** - Detailed installation instructions
+- **[FEATURES.md](docs/FEATURES.md)** - Stages 5-8 features (performance, characters, animations, effects)
+- **[STAGES-9-11.md](docs/STAGES-9-11.md)** - Stages 9-11 features (voice personality, distribution, chat mode)
+- **[BUILD.md](BUILD.md)** - Building, packaging, and distribution guide
+- **[TODO.md](TODO.md)** - Development roadmap and future features
+- **[CLAUDE.md](CLAUDE.md)** - Developer guidance for Claude Code
 
 ## Credits
 

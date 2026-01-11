@@ -17,6 +17,7 @@ from .model.visemes import VisemeController
 from .terminal import Display, ColorMode, RainbowColors, PRESET_SCHEMES
 from .audio import EdgeTTSEngine, AudioPlayer, LipSyncGenerator
 from .tutor import TextTutor
+from .chat import ChatSession, list_available_backends
 
 
 def create_head_renderer(
@@ -185,12 +186,20 @@ async def run_speak_mode(
     text: str,
     character: str = "default",
     color_scheme: str = "default",
-    voice: str = "en-US-AriaNeural",
+    voice: Optional[str] = None,
     expression: Optional[str] = None,
     quality: str = "high",
 ):
     """
     Run speaking mode - head speaks given text.
+
+    Args:
+        text: Text to speak
+        character: Character preset
+        color_scheme: Color scheme
+        voice: Voice to use (None = use character's default voice)
+        expression: Initial expression
+        quality: Rendering quality
     """
     from .audio.tts import run_async
 
@@ -206,6 +215,11 @@ async def run_speak_mode(
         head.set_expression(expression)
 
     display.set_color_scheme(color_scheme)
+
+    # Use character's default voice if not specified
+    if voice is None:
+        voice = head.default_voice
+        print(f"Using default voice for {character}: {voice}")
 
     # Initialize TTS
     tts = EdgeTTSEngine(voice=voice)
@@ -258,12 +272,20 @@ async def run_tutor_mode(
     file_path: str,
     character: str = "default",
     color_scheme: str = "default",
-    voice: str = "en-US-AriaNeural",
+    voice: Optional[str] = None,
     expression: Optional[str] = None,
     quality: str = "high",
 ):
     """
     Run tutor mode - read and explain a text/markdown file.
+
+    Args:
+        file_path: Path to file to read
+        character: Character preset
+        color_scheme: Color scheme
+        voice: Voice to use (None = use character's default voice)
+        expression: Initial expression
+        quality: Rendering quality
     """
     display = Display(target_fps=15.0)
     width, height = display.get_size()
@@ -277,6 +299,11 @@ async def run_tutor_mode(
         head.set_expression(expression)
 
     display.set_color_scheme(color_scheme)
+
+    # Use character's default voice if not specified
+    if voice is None:
+        voice = head.default_voice
+        print(f"Using default voice for {character}: {voice}")
 
     # Load content
     tutor = TextTutor()
@@ -367,6 +394,186 @@ def run_static_mode(
     print(frame)
 
 
+async def run_chat_mode(
+    character: str = "default",
+    color_scheme: str = "default",
+    fps: float = 15.0,
+    quality: str = "high",
+    llm_backend: str = "ollama",
+    llm_model: Optional[str] = None,
+):
+    """
+    Run interactive chat mode with LLM.
+
+    Args:
+        character: Character preset name
+        color_scheme: Color scheme name
+        fps: Target frames per second
+        quality: Quality level
+        llm_backend: LLM backend type
+        llm_model: LLM model name (optional)
+    """
+    from .chat import ChatSession
+
+    print(f"Initializing chat mode with {character} character...")
+    print(f"LLM Backend: {llm_backend}")
+
+    # Set up backend kwargs
+    backend_kwargs = {}
+    if llm_model:
+        backend_kwargs["model"] = llm_model
+
+    # Create chat session
+    try:
+        chat_session = ChatSession(
+            character_name=character,
+            backend_type=llm_backend,
+            backend_kwargs=backend_kwargs,
+        )
+    except Exception as e:
+        print(f"Error initializing chat session: {e}")
+        print()
+        print("Troubleshooting:")
+        if llm_backend == "ollama":
+            print("  - Is Ollama installed and running?")
+            print("  - Try: ollama serve")
+            print("  - Download a model: ollama pull llama3.2")
+        elif llm_backend == "openai":
+            print("  - Is OPENAI_API_KEY environment variable set?")
+            print("  - export OPENAI_API_KEY='your-key-here'")
+        return
+
+    # Create display and head
+    display = Display(target_fps=fps)
+    width, height = display.get_size()
+
+    # Reserve bottom lines for chat UI
+    chat_ui_lines = 5
+    render_height = min(height - chat_ui_lines, 50)
+    render_width = min(width, 100)
+
+    head, raymarcher = create_head_renderer(render_width, render_height, character, quality)
+    head.set_expression("neutral")
+    display.set_color_scheme(color_scheme)
+
+    print()
+    print("=" * 70)
+    print("CHAT MODE - Interactive Conversation")
+    print("=" * 70)
+    print(f"Character: {character}")
+    print(f"Personality: {chat_session.bot.personality.description}")
+    print()
+    print("Controls:")
+    print("  - Type your message and press Enter")
+    print("  - Type 'quit' or 'exit' to end")
+    print("  - Type 'clear' to clear conversation history")
+    print("=" * 70)
+    print()
+
+    # Store conversation display
+    conversation_log = []
+
+    def render_frame_with_chat():
+        """Render head with chat UI overlay."""
+        # Update head animation
+        head.update(1.0 / fps)
+
+        # Render head
+        sdf = head.get_sdf()
+        frame = raymarcher.render_frame(sdf)
+
+        # Add chat UI at bottom
+        lines = frame.split("\n")
+
+        # Add separator
+        lines.append("-" * render_width)
+
+        # Add recent conversation (last few messages)
+        recent_messages = conversation_log[-3:]
+        for msg in recent_messages:
+            # Truncate long messages
+            if len(msg) > render_width:
+                msg = msg[: render_width - 3] + "..."
+            lines.append(msg)
+
+        # Pad to full height
+        while len(lines) < render_height + chat_ui_lines:
+            lines.append("")
+
+        return "\n".join(lines)
+
+    # Chat loop
+    running = True
+    while running:
+        try:
+            # Show initial frame
+            frame = render_frame_with_chat()
+            display.clear()
+            print(frame)
+
+            # Get user input
+            print("\nYou: ", end="", flush=True)
+            user_input = input().strip()
+
+            if not user_input:
+                continue
+
+            # Check for commands
+            if user_input.lower() in ["quit", "exit"]:
+                print("Goodbye!")
+                break
+
+            if user_input.lower() == "clear":
+                chat_session.clear()
+                conversation_log.clear()
+                print("Conversation cleared.")
+                continue
+
+            # Add user message to log
+            conversation_log.append(f"You: {user_input}")
+
+            # Show "thinking" while processing
+            head.set_expression("thinking")
+            frame = render_frame_with_chat()
+            display.clear()
+            print(frame)
+            print("\nYou:", user_input)
+            print(f"{character.capitalize()}: ", end="", flush=True)
+
+            # Get response from LLM (streaming)
+            response_text = []
+            try:
+                async for token, expression in chat_session.send_message_stream(user_input):
+                    response_text.append(token)
+                    print(token, end="", flush=True)
+
+                    # Update expression dynamically
+                    if expression != head.current_expression_name:
+                        head.set_expression(expression)
+
+                print()  # New line after response
+
+                # Add assistant message to log
+                full_response = "".join(response_text)
+                conversation_log.append(f"{character.capitalize()}: {full_response}")
+
+            except Exception as e:
+                print(f"\nError getting response: {e}")
+                conversation_log.append(f"{character.capitalize()}: [Error: {e}]")
+
+            # Brief pause to show final expression
+            await asyncio.sleep(0.5)
+
+        except KeyboardInterrupt:
+            print("\n\nChat interrupted.")
+            running = False
+        except EOFError:
+            print("\n\nChat ended.")
+            running = False
+
+    display.cleanup()
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -422,8 +629,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
     parser.add_argument(
         "--voice", "-v",
         type=str,
-        default="en-US-AriaNeural",
-        help="TTS voice name"
+        default=None,
+        help="TTS voice name (default: auto-select based on character)"
     )
     parser.add_argument(
         "--fps",
@@ -463,6 +670,34 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         action="store_true",
         help="List available facial expressions"
     )
+    parser.add_argument(
+        "--list-character-voices",
+        action="store_true",
+        help="List character-to-voice mappings"
+    )
+    parser.add_argument(
+        "--chat",
+        action="store_true",
+        help="Enable interactive chat mode with LLM"
+    )
+    parser.add_argument(
+        "--llm-backend",
+        type=str,
+        choices=["ollama", "openai"],
+        default="ollama",
+        help="LLM backend to use (default: ollama)"
+    )
+    parser.add_argument(
+        "--llm-model",
+        type=str,
+        default=None,
+        help="LLM model name (default: llama3.2:latest for ollama, gpt-4o-mini for openai)"
+    )
+    parser.add_argument(
+        "--list-llm-backends",
+        action="store_true",
+        help="List available LLM backends"
+    )
 
     args = parser.parse_args()
 
@@ -494,6 +729,45 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             print(f"  - {name:12} (duration: {expr.duration:.1f}s)")
         return
 
+    if args.list_character_voices:
+        from .model import CharacterHead
+        print("Character-to-Voice Mappings:")
+        print("=" * 70)
+        voices = CharacterHead.get_all_character_voices()
+        for char, voice in voices.items():
+            print(f"  {char:12} → {voice}")
+        print()
+        print("Note: Voices are auto-selected unless you specify --voice")
+        print("      To override: ./dev.sh run --speak 'text' --character cat --voice en-US-GuyNeural")
+        return
+
+    if args.list_llm_backends:
+        from .chat import list_available_backends
+        print("Checking available LLM backends...")
+        print()
+        available = list_available_backends()
+        if available:
+            print(f"Available backends: {', '.join(available)}")
+            print()
+            for backend in available:
+                if backend == "ollama":
+                    print("  [ollama]")
+                    print("    - Local LLM inference")
+                    print("    - Install: https://ollama.ai")
+                    print("    - Default model: llama3.2:latest")
+                elif backend == "openai":
+                    print("  [openai]")
+                    print("    - OpenAI API")
+                    print("    - Requires: OPENAI_API_KEY environment variable")
+                    print("    - Default model: gpt-4o-mini")
+        else:
+            print("No LLM backends available.")
+            print()
+            print("To use chat mode, you need either:")
+            print("  1. Ollama: Install from https://ollama.ai")
+            print("  2. OpenAI: Set OPENAI_API_KEY environment variable")
+        return
+
     # Handle modes
     if args.static:
         run_static_mode(
@@ -501,6 +775,15 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             expression=args.expression,
             quality=args.quality,
         )
+    elif args.chat:
+        asyncio.run(run_chat_mode(
+            character=args.character,
+            color_scheme=args.scheme,
+            fps=args.fps,
+            quality=args.quality,
+            llm_backend=args.llm_backend,
+            llm_model=args.llm_model,
+        ))
     elif args.speak:
         asyncio.run(run_speak_mode(
             args.speak,
