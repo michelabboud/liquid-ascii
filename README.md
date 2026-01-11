@@ -51,7 +51,16 @@ cd liquid-ascii
 ./dev.sh run      # Try it!
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for more examples and the full command reference.
+**Or use ready-made demo scripts:**
+
+```bash
+./demo/check_prereqs.sh   # Check system requirements
+./demo/install.sh         # Install dependencies
+./demo/demo_basic.sh      # Run basic demo
+./demo/demo_animated.sh   # Run animated demo
+```
+
+See [demo/README.md](demo/README.md) for all available demos and [QUICKSTART.md](QUICKSTART.md) for full command reference.
 
 ## Installation
 
@@ -224,6 +233,29 @@ liquid-ascii [options]
 **Windows**: Use `.\scripts\dev.ps1` instead of `./dev.sh`
 
 ## Examples
+
+### Ready-Made Demo Scripts
+
+The `demo/` folder contains ready-to-run shell scripts for quick testing:
+
+```bash
+# Check system prerequisites
+./demo/check_prereqs.sh
+
+# Install dependencies automatically
+./demo/install.sh
+
+# Run demos
+./demo/demo_basic.sh           # Static frame
+./demo/demo_animated.sh        # 15-second animation
+./demo/demo_characters.sh      # Gallery of all characters
+./demo/demo_expressions.sh     # Gallery of all expressions
+./demo/demo_all_features.sh    # Showcase all features
+```
+
+See [demo/README.md](demo/README.md) for detailed documentation.
+
+### Python Example Scripts
 
 Run the example scripts:
 

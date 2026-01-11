@@ -22,6 +22,29 @@ cd liquid-ascii
 
 ---
 
+## Demo Scripts (Alternative Setup)
+
+**New!** Use ready-made demo scripts without dev.sh:
+
+```bash
+# 1. Check prerequisites
+./demo/check_prereqs.sh
+
+# 2. Install dependencies
+./demo/install.sh
+
+# 3. Run demos
+./demo/demo_basic.sh           # Static frame
+./demo/demo_animated.sh        # 15-second animation
+./demo/demo_characters.sh      # All character types
+./demo/demo_expressions.sh     # All expressions
+./demo/demo_all_features.sh    # Everything!
+```
+
+See [demo/README.md](demo/README.md) for full documentation.
+
+---
+
 ## Quick Commands
 
 ```bash
