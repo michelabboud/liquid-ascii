@@ -2,6 +2,12 @@
 
 from .display import Display, ColorMode
 from .colors import ColorScheme, RainbowColors, PRESET_SCHEMES
+from .input import (
+    InputCommand,
+    InputEvent,
+    InteractiveInputHandler,
+    InteractiveController,
+)
 
 __all__ = [
     "Display",
@@ -9,4 +15,8 @@ __all__ = [
     "ColorScheme",
     "RainbowColors",
     "PRESET_SCHEMES",
+    "InputCommand",
+    "InputEvent",
+    "InteractiveInputHandler",
+    "InteractiveController",
 ]

@@ -68,6 +68,13 @@ class Display:
             self._term = Terminal()
 
     @property
+    def term(self):
+        """Get the blessed Terminal instance."""
+        if self._term is None:
+            self._init_terminal()
+        return self._term
+
+    @property
     def width(self) -> int:
         """Get display width."""
         if self._width:

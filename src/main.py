@@ -49,10 +49,21 @@ def run_demo_mode(
     rainbow_mode: Optional[str] = None,
     fps: float = 15.0,
     expression: Optional[str] = None,
+    interactive: bool = False,
 ):
     """
     Run the demo animation (idle head with blinking).
+
+    Args:
+        character: Character preset name
+        color_scheme: Color scheme name
+        rainbow_mode: Rainbow mode name
+        fps: Target frames per second
+        expression: Initial expression
+        interactive: Enable keyboard controls
     """
+    from .terminal import InteractiveInputHandler, InteractiveController, InputCommand, PRESET_SCHEMES
+
     display = Display(target_fps=fps)
     width, height = display.get_size()
 
@@ -71,14 +82,88 @@ def run_demo_mode(
     else:
         display.set_color_scheme(color_scheme)
 
+    # Interactive controls
+    input_handler = None
+    controller = None
+    color_schemes = list(PRESET_SCHEMES.keys())
+    rainbow_modes = ["horizontal", "vertical", "radial", "diagonal", "wave", "time"]
+    current_scheme_idx = color_schemes.index(color_scheme) if color_scheme in color_schemes else 0
+    current_rainbow_idx = rainbow_modes.index(rainbow_mode) if rainbow_mode in rainbow_modes else 0
+    current_fps = fps
+
+    if interactive:
+        input_handler = InteractiveInputHandler(display.term)
+        controller = InteractiveController(input_handler)
+
     def update(dt: float) -> str:
+        nonlocal current_scheme_idx, current_rainbow_idx, current_fps, rainbow_mode
+
+        # Process interactive input
+        if interactive and controller:
+            if not controller.process_input():
+                return None  # Signal quit
+
+            # Check for expression changes
+            event = input_handler.poll_input(timeout=0.0)
+            if event:
+                # Expression commands
+                expr_name = input_handler.get_expression_name(event.command)
+                if expr_name:
+                    head.set_expression(expr_name)
+
+                # Color scheme cycling
+                elif event.command == InputCommand.CYCLE_COLOR_SCHEME:
+                    current_scheme_idx = (current_scheme_idx + 1) % len(color_schemes)
+                    new_scheme = color_schemes[current_scheme_idx]
+                    display.set_color_scheme(new_scheme)
+                    rainbow_mode = None
+
+                # Rainbow mode cycling
+                elif event.command == InputCommand.CYCLE_RAINBOW:
+                    current_rainbow_idx = (current_rainbow_idx + 1) % len(rainbow_modes)
+                    rainbow_mode = rainbow_modes[current_rainbow_idx]
+                    display.set_rainbow(mode=rainbow_mode)
+
+                # FPS adjustment
+                elif event.command == InputCommand.FPS_INCREASE:
+                    current_fps = min(60.0, current_fps + 2.0)
+                    display.target_fps = current_fps
+
+                elif event.command == InputCommand.FPS_DECREASE:
+                    current_fps = max(5.0, current_fps - 2.0)
+                    display.target_fps = current_fps
+
+            # Apply head tilt from controller
+            tilt_x, tilt_y, tilt_z = controller.get_head_tilt()
+            head.set_head_tilt(tilt_x, tilt_y, tilt_z)
+
+            # Skip update if paused
+            if controller.is_paused():
+                sdf = head.get_sdf()
+                frame = raymarcher.render_frame(sdf)
+                # Show pause indicator
+                if input_handler.is_help_visible():
+                    return input_handler.get_help_text()
+                return frame + "\n[PAUSED] Press SPACE to resume, H for help"
+
+        # Normal update
         head.update(dt)
         sdf = head.get_sdf()
-        return raymarcher.render_frame(sdf)
+        frame = raymarcher.render_frame(sdf)
+
+        # Overlay help if visible
+        if interactive and input_handler and input_handler.is_help_visible():
+            return input_handler.get_help_text()
+
+        return frame
 
     expr_info = f" with expression '{expression}'" if expression else ""
-    print(f"Starting demo mode with character '{character}'{expr_info}...")
-    print("Press 'q' to quit")
+    interactive_info = " (interactive mode)" if interactive else ""
+    print(f"Starting demo mode with character '{character}'{expr_info}{interactive_info}...")
+    if interactive:
+        print("Press 'H' for help, ESC or 'Q' to quit")
+    else:
+        print("Press 'q' to quit")
 
     display.run_loop(update, show_fps=True)
 
@@ -328,6 +413,11 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         help="Target FPS (default: 15)"
     )
     parser.add_argument(
+        "--interactive", "-i",
+        action="store_true",
+        help="Enable interactive keyboard controls (arrow keys, expressions, etc.)"
+    )
+    parser.add_argument(
         "--static",
         action="store_true",
         help="Render single static frame"
@@ -404,6 +494,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             rainbow_mode=args.rainbow,
             fps=args.fps,
             expression=args.expression,
+            interactive=args.interactive,
         )
 
 
