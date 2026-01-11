@@ -18,6 +18,21 @@ RAMPS = {
     "dots": " ⠁⠂⠃⠄⠅⠆⠇⡀⡁⡂⡃⡄⡅⡆⡇",
     "minimal": " .-+*#",
     "dense": " .:-=+*#%@█",
+    # UTF-8 Enhanced ramps
+    "unicode": " ·∘○◌◍◎●◉⦿",
+    "stars": " ․·∗∘✦✧✨✪✫✬✭✮✯✰★",
+    "diamonds": " ·◆◇◈◊⬥⬦⬧⬨",
+    "circles": " ○◌◍◎◐◑◒◓◔◕◖◗●",
+    "squares": " ▫▪▯▮▭▬◼◾◼️⬛",
+    "geometric": " ▹▸▷▶◀◁◂◃◄►",
+    "box": " ░▒▓█▇▆▅▄▃▂▁",
+    "smooth": " ░▒▓█▓▒░",
+    # Emoji-based ramps (for fun!)
+    "faces": " 😐😶😑🙂😊😃😄😁",
+    "hearts": " 🖤🤎💜💙💚💛🧡❤️",
+    "food": " 🥚🥔🍞🧀🍰🍪🍩🍫",
+    "nature": " 🌑🌘🌗🌖🌕🌝✨💫",
+    "weather": " ⛅🌤️🌥️☁️🌫️🌪️⚡🔥",
 }
 
 

@@ -255,11 +255,79 @@ class Raymarcher:
 
         return "\n".join(lines)
 
+    def _detect_edges(
+        self,
+        hit_mask: np.ndarray,
+        normals: np.ndarray,
+        hit_points: np.ndarray,
+        normal_threshold: float = 0.5,
+        depth_threshold: float = 0.1,
+    ) -> np.ndarray:
+        """
+        Detect edges using normal discontinuities and depth changes.
+
+        Args:
+            hit_mask: Boolean mask of pixels that hit geometry
+            normals: Surface normals at each pixel
+            hit_points: 3D hit points for depth comparison
+            normal_threshold: Normal angle difference threshold (0-2, higher = more sensitive)
+            depth_threshold: Depth discontinuity threshold
+
+        Returns:
+            Boolean mask indicating edge pixels
+        """
+        edge_mask = np.zeros_like(hit_mask, dtype=bool)
+        h, w = hit_mask.shape
+
+        for y in range(1, h - 1):
+            for x in range(1, w - 1):
+                if not hit_mask[y, x]:
+                    continue
+
+                is_edge = False
+                current_normal = normals[y, x]
+                current_point = hit_points[y, x]
+
+                # Check 4-neighbors (up, down, left, right)
+                neighbors = [
+                    (y - 1, x),  # up
+                    (y + 1, x),  # down
+                    (y, x - 1),  # left
+                    (y, x + 1),  # right
+                ]
+
+                for ny, nx in neighbors:
+                    # Edge at geometry boundary (hit vs no-hit)
+                    if not hit_mask[ny, nx]:
+                        is_edge = True
+                        break
+
+                    # Edge at normal discontinuity
+                    neighbor_normal = normals[ny, nx]
+                    dot_product = np.dot(current_normal, neighbor_normal)
+                    if dot_product < (1.0 - normal_threshold):
+                        is_edge = True
+                        break
+
+                    # Edge at depth discontinuity
+                    neighbor_point = hit_points[ny, nx]
+                    depth_diff = np.abs(np.linalg.norm(current_point - neighbor_point))
+                    if depth_diff > depth_threshold:
+                        is_edge = True
+                        break
+
+                edge_mask[y, x] = is_edge
+
+        return edge_mask
+
     def render_frame_with_features(
         self,
         sdf_with_features: FeatureSDFFunc,
         color_scheme,
         background: str = " ",
+        use_emojis: bool = False,
+        use_edges: bool = True,
+        edge_boost: float = 0.8,
     ) -> str:
         """
         Render frame with feature-specific coloring (eyes, mouth, skin).
@@ -268,12 +336,22 @@ class Raymarcher:
             sdf_with_features: SDF function that returns (distance, feature_type)
             color_scheme: ColorScheme with eye_color, pupil_color, mouth_color
             background: Background character
+            use_emojis: Use emoji characters for facial features
+            use_edges: Enable edge detection for sharper feature boundaries
+            edge_boost: How much to boost edge intensity (0-1, higher = darker edges)
 
         Returns:
             Multi-line ASCII string with ANSI color codes
         """
         from ..terminal.colors import rgb_to_ansi_escape, reset_color
         from ..model.head import FacialFeature
+
+        # Emoji feature characters
+        EMOJI_CHARS = {
+            FacialFeature.PUPIL: "⚫",  # Black circle
+            FacialFeature.EYE: "⚪",    # White circle
+            FacialFeature.MOUTH: "🔴", # Red circle
+        }
 
         # Generate rays
         origins, directions = self.camera.get_rays_batch(self.width, self.height)
@@ -312,15 +390,34 @@ class Raymarcher:
         intensities = self.shader.compute_lighting_batch(normals, view_dirs)
         char_indices = self.shader.intensity_to_char_batch(intensities)
 
+        # Apply edge detection to boost contrast at feature boundaries
+        if use_edges:
+            edge_mask = self._detect_edges(hit_mask, normals, hit_points)
+            # Boost character indices at edges (push toward darker characters)
+            ramp_size = len(self.shader.ramp)
+            for y in range(self.height):
+                for x in range(self.width):
+                    if edge_mask[y, x]:
+                        # Boost toward max index (darkest character)
+                        boosted = char_indices[y, x] + edge_boost * (ramp_size - 1 - char_indices[y, x])
+                        char_indices[y, x] = int(min(boosted, ramp_size - 1))
+                        # Also darken the intensity for edge coloring
+                        intensities[y, x] = max(0, intensities[y, x] - edge_boost * 0.3)
+
         # Build colored output
         lines = []
         for y in range(self.height):
             row = ""
             for x in range(self.width):
                 if hit_mask[y, x]:
-                    char = self.shader.ramp[char_indices[y, x]]
                     feature = features[y, x]
                     intensity = intensities[y, x]
+
+                    # Select character (emoji or ASCII)
+                    if use_emojis and feature in EMOJI_CHARS:
+                        char = EMOJI_CHARS[feature]
+                    else:
+                        char = self.shader.ramp[char_indices[y, x]]
 
                     # Select color based on feature
                     if feature == FacialFeature.PUPIL:

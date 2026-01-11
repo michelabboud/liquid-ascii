@@ -108,6 +108,7 @@ def create_head_renderer(
     height: int = 40,
     character: str = "default",
     quality: str = "high",
+    ramp: str = "standard",
 ) -> tuple:
     """
     Create a head model with renderer.
@@ -117,13 +118,14 @@ def create_head_renderer(
         height: Render height in characters
         character: Character preset name
         quality: Quality level (low/medium/high/ultra/auto)
+        ramp: ASCII ramp style (standard, unicode, stars, faces, etc.)
 
     Returns:
         (head, raymarcher) tuple
     """
     head = CharacterHead(character_name=character)
     camera = Camera(position=(0, 0, -3.5), target=(0, 0, 0))
-    shader = ASCIIShader(ramp="standard")
+    shader = ASCIIShader(ramp=ramp)
 
     # Convert quality string to enum
     quality_level = QualityLevel(quality)
@@ -550,13 +552,17 @@ def run_static_mode(
     expression: str | None = None,
     quality: str = "high",
     color_scheme_name: str = "default",
+    ramp: str = "standard",
+    use_emojis: bool = False,
+    use_edges: bool = True,
+    edge_boost: float = 0.8,
 ):
     """
     Render a single static frame with feature-based coloring.
     """
     from .terminal.colors import PRESET_SCHEMES
 
-    head, raymarcher = create_head_renderer(160, 80, character, quality)  # Larger
+    head, raymarcher = create_head_renderer(100, 60, character, quality, ramp)  # 100x60 resolution
     color_scheme = PRESET_SCHEMES[color_scheme_name]
 
     # Set initial expression if specified
@@ -570,7 +576,13 @@ def run_static_mode(
 
     # Use feature-based rendering for colored facial features
     sdf_with_features = head.get_sdf_with_features()
-    frame = raymarcher.render_frame_with_features(sdf_with_features, color_scheme)
+    frame = raymarcher.render_frame_with_features(
+        sdf_with_features,
+        color_scheme,
+        use_emojis=use_emojis,
+        use_edges=use_edges,
+        edge_boost=edge_boost,
+    )
     print(frame)
 
 
@@ -883,6 +895,39 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         help="Facial expression (neutral, happy, sad, angry, surprised, confused, tired, wink, thinking, excited, skeptical)",
     )
     parser.add_argument("--scheme", type=str, default="default", help="Color scheme name")
+    parser.add_argument(
+        "--ramp",
+        type=str,
+        default="standard",
+        help="ASCII ramp style (standard, unicode, stars, circles, faces, hearts, nature, etc.)",
+    )
+    parser.add_argument(
+        "--emojis",
+        action="store_true",
+        help="Use emoji characters for eyes, pupils, and mouth (⚪⚫🔴)",
+    )
+    parser.add_argument(
+        "--no-utf8",
+        action="store_true",
+        help="Disable UTF-8 enhanced characters (use basic ASCII only)",
+    )
+    parser.add_argument(
+        "--edges",
+        action="store_true",
+        default=True,
+        help="Enable edge detection for sharper feature boundaries (default: ON)",
+    )
+    parser.add_argument(
+        "--no-edges",
+        action="store_true",
+        help="Disable edge detection",
+    )
+    parser.add_argument(
+        "--edge-intensity",
+        type=float,
+        default=0.8,
+        help="Edge contrast boost intensity 0-1 (default: 0.8)",
+    )
     parser.add_argument(
         "--rainbow",
         "-r",
@@ -1198,11 +1243,24 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
 
     # Handle modes
     if args.static:
+        # UTF-8 is ON by default, can be disabled with --no-utf8
+        if args.no_utf8:
+            ramp = args.ramp  # Use specified ramp or default "standard"
+        else:
+            ramp = "unicode" if args.ramp == "standard" else args.ramp
+
+        # Edges are ON by default, can be disabled with --no-edges
+        use_edges = not args.no_edges
+
         run_static_mode(
             args.character,
             expression=args.expression,
             quality=args.quality,
             color_scheme_name=args.scheme,
+            ramp=ramp,
+            use_emojis=args.emojis,
+            use_edges=use_edges,
+            edge_boost=args.edge_intensity,
         )
     elif args.chat:
         asyncio.run(
