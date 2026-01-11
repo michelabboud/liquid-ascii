@@ -26,6 +26,14 @@ ignore = [
     "B008",  # Do not perform function call in argument defaults
     "C408",  # Unnecessary dict call - rewrite as literal
     "SIM108", # Use ternary operator (sometimes less readable)
+
+    # Acceptable for this project
+    "SIM102",  # Nested if statements are sometimes clearer
+    "SIM115",  # tempfile.NamedTemporaryFile(delete=False) is required pattern
+    "E741",    # Ambiguous variable names (O, I) acceptable for phoneme enums
+    "N803",    # Uppercase argument names (R) acceptable for math conventions
+    "UP007",   # Union type syntax - legacy style is acceptable
+    "B905",    # zip without strict - arrays guaranteed same length
 ]
 
 # Exclude directories
