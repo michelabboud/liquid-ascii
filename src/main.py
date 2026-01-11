@@ -48,6 +48,7 @@ def run_demo_mode(
     color_scheme: str = "default",
     rainbow_mode: Optional[str] = None,
     fps: float = 15.0,
+    expression: Optional[str] = None,
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -61,6 +62,10 @@ def run_demo_mode(
 
     head, raymarcher = create_head_renderer(width, height, character)
 
+    # Set initial expression if specified
+    if expression:
+        head.set_expression(expression)
+
     if rainbow_mode:
         display.set_rainbow(mode=rainbow_mode)
     else:
@@ -71,7 +76,8 @@ def run_demo_mode(
         sdf = head.get_sdf()
         return raymarcher.render_frame(sdf)
 
-    print(f"Starting demo mode with character '{character}'...")
+    expr_info = f" with expression '{expression}'" if expression else ""
+    print(f"Starting demo mode with character '{character}'{expr_info}...")
     print("Press 'q' to quit")
 
     display.run_loop(update, show_fps=True)
@@ -82,6 +88,7 @@ async def run_speak_mode(
     character: str = "default",
     color_scheme: str = "default",
     voice: str = "en-US-AriaNeural",
+    expression: Optional[str] = None,
 ):
     """
     Run speaking mode - head speaks given text.
@@ -94,6 +101,11 @@ async def run_speak_mode(
     height = min(height, 50)
 
     head, raymarcher = create_head_renderer(width, height, character)
+
+    # Set initial expression if specified
+    if expression:
+        head.set_expression(expression)
+
     display.set_color_scheme(color_scheme)
 
     # Initialize TTS
@@ -148,6 +160,7 @@ async def run_tutor_mode(
     character: str = "default",
     color_scheme: str = "default",
     voice: str = "en-US-AriaNeural",
+    expression: Optional[str] = None,
 ):
     """
     Run tutor mode - read and explain a text/markdown file.
@@ -158,6 +171,11 @@ async def run_tutor_mode(
     height = min(height, 50)
 
     head, raymarcher = create_head_renderer(width, height, character)
+
+    # Set initial expression if specified
+    if expression:
+        head.set_expression(expression)
+
     display.set_color_scheme(color_scheme)
 
     # Load content
@@ -226,11 +244,20 @@ async def run_tutor_mode(
         tts.cleanup()
 
 
-def run_static_mode(character: str = "default"):
+def run_static_mode(character: str = "default", expression: Optional[str] = None):
     """
     Render a single static frame (no animation).
     """
     head, raymarcher = create_head_renderer(80, 40, character)
+
+    # Set initial expression if specified
+    if expression:
+        head.set_expression(expression)
+        # Let expression transition complete for static render
+        import time
+        time.sleep(0.1)
+        head.update(0.1)
+
     sdf = head.get_sdf()
     frame = raymarcher.render_frame(sdf)
     print(frame)
@@ -273,6 +300,11 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         help="Character preset (default, round, tall, wide, robot, cute)"
     )
     parser.add_argument(
+        "--expression", "-e",
+        type=str,
+        help="Facial expression (neutral, happy, sad, angry, surprised, confused, tired, wink, thinking, excited, skeptical)"
+    )
+    parser.add_argument(
         "--scheme",
         type=str,
         default="default",
@@ -310,6 +342,11 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         action="store_true",
         help="List available color schemes"
     )
+    parser.add_argument(
+        "--list-expressions",
+        action="store_true",
+        help="List available facial expressions"
+    )
 
     args = parser.parse_args()
 
@@ -334,15 +371,23 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         asyncio.run(list_voices())
         return
 
+    if args.list_expressions:
+        from .model import EXPRESSIONS
+        print("Available facial expressions:")
+        for name, expr in EXPRESSIONS.items():
+            print(f"  - {name:12} (duration: {expr.duration:.1f}s)")
+        return
+
     # Handle modes
     if args.static:
-        run_static_mode(args.character)
+        run_static_mode(args.character, expression=args.expression)
     elif args.speak:
         asyncio.run(run_speak_mode(
             args.speak,
             character=args.character,
             color_scheme=args.scheme,
             voice=args.voice,
+            expression=args.expression,
         ))
     elif args.tutor:
         asyncio.run(run_tutor_mode(
@@ -350,6 +395,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             character=args.character,
             color_scheme=args.scheme,
             voice=args.voice,
+            expression=args.expression,
         ))
     else:
         run_demo_mode(
@@ -357,6 +403,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             color_scheme=args.scheme,
             rainbow_mode=args.rainbow,
             fps=args.fps,
+            expression=args.expression,
         )
 
 

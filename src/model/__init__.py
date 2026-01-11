@@ -12,6 +12,7 @@ from .animation import (
 )
 from .visemes import Viseme, VisemeController, VISEME_SHAPES
 from .head import Head, HeadState, CharacterHead, HeadGeometry
+from .expressions import Expression, ExpressionManager, EXPRESSIONS
 
 __all__ = [
     "smoothstep",
@@ -29,4 +30,7 @@ __all__ = [
     "HeadState",
     "CharacterHead",
     "HeadGeometry",
+    "Expression",
+    "ExpressionManager",
+    "EXPRESSIONS",
 ]

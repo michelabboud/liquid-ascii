@@ -22,6 +22,7 @@ from ..renderer.sdf import (
     Vec3,
 )
 from .animation import organic_noise, blink_pattern, breathing_motion
+from .expressions import ExpressionManager, Expression
 
 
 @dataclass
@@ -95,6 +96,7 @@ class Head:
         self,
         geometry: Optional[HeadGeometry] = None,
         enable_idle_animation: bool = True,
+        enable_expressions: bool = True,
     ):
         """
         Initialize the head model.
@@ -102,11 +104,16 @@ class Head:
         Args:
             geometry: Head geometry parameters
             enable_idle_animation: Enable organic idle movement
+            enable_expressions: Enable expression system
         """
         self.geometry = geometry or HeadGeometry()
         self.state = HeadState()
         self.enable_idle_animation = enable_idle_animation
+        self.enable_expressions = enable_expressions
         self._time = 0.0
+
+        # Expression system
+        self.expression_manager = ExpressionManager() if enable_expressions else None
 
     def update(self, dt: float):
         """
@@ -117,12 +124,19 @@ class Head:
         """
         self._time += dt
 
+        # Update expressions
+        if self.enable_expressions and self.expression_manager:
+            current_expr = self.expression_manager.update()
+            self._apply_expression(current_expr)
+
         if self.enable_idle_animation:
             # Apply organic noise for lifelike movement
             self.state.idle_offset = organic_noise(self._time)
 
-            # Auto-blink
-            self.state.blink_amount = blink_pattern(self._time)
+            # Auto-blink (only if not controlled by expression)
+            if not (self.enable_expressions and self.expression_manager and
+                    self.expression_manager.is_transitioning):
+                self.state.blink_amount = blink_pattern(self._time)
 
     def set_mouth(self, openness: float, width: float = 0.5, pucker: float = 0.0):
         """Set mouth shape parameters."""
@@ -144,6 +158,56 @@ class Head:
         self.state.head_tilt_x = x
         self.state.head_tilt_y = y
         self.state.head_tilt_z = z
+
+    def set_expression(self, expression_name: str, duration: Optional[float] = None):
+        """
+        Set facial expression.
+
+        Args:
+            expression_name: Name of expression (happy, sad, angry, etc.)
+            duration: Transition duration in seconds (uses default if None)
+        """
+        if not self.enable_expressions or not self.expression_manager:
+            return
+        self.expression_manager.set_expression(expression_name, duration)
+
+    def _apply_expression(self, expression: Expression):
+        """
+        Apply expression state to head state.
+
+        Args:
+            expression: Expression to apply
+        """
+        # Apply expression to state
+        self.state.eyebrow_raise = expression.eyebrow_raise
+        self.state.smile_amount = expression.smile_amount
+
+        # Mouth shaping from expression
+        self.state.mouth_openness = expression.mouth_openness
+        self.state.lip_pucker = expression.lip_pucker
+
+        # Eye control from expression
+        if expression.blink_amount > 0:
+            self.state.blink_amount = expression.blink_amount
+        self.state.eye_look_x = expression.eye_look_x
+        self.state.eye_look_y = expression.eye_look_y
+
+        # Head orientation from expression
+        self.state.head_tilt_x = expression.head_tilt[0]
+        self.state.head_tilt_y = expression.head_tilt[1]
+        self.state.head_tilt_z = expression.head_tilt[2]
+
+    def get_current_expression(self) -> Optional[str]:
+        """Get name of current expression."""
+        if self.expression_manager:
+            return self.expression_manager.get_current_expression_name()
+        return None
+
+    def list_expressions(self) -> list[str]:
+        """Get list of available expressions."""
+        if self.expression_manager:
+            return self.expression_manager.list_expressions()
+        return []
 
     def _rotate_point(self, p: np.ndarray) -> np.ndarray:
         """Apply head rotation to a point."""
