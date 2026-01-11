@@ -1,12 +1,13 @@
-# New Features: Stages 9-11
+# New Features: Stages 9-12
 
-This document describes features implemented in Stages 9-11 of development.
+This document describes features implemented in Stages 9-12 of development.
 
 ## Table of Contents
 
 - [Stage 9: Voice Personality Matching](#stage-9-voice-personality-matching)
 - [Stage 10: Package Distribution](#stage-10-package-distribution)
 - [Stage 11: Chat Mode](#stage-11-chat-mode)
+- [Stage 12: Voice-Enabled Chat](#stage-12-voice-enabled-chat)
 
 ---
 
@@ -623,9 +624,289 @@ class ConversationMemory(max_messages, context_window)
 
 ---
 
+## Stage 12: Voice-Enabled Chat
+
+Full conversational AI with the character speaking responses aloud with lip sync.
+
+### Overview
+
+Stage 12 combines the LLM chat system (Stage 11) with text-to-speech and lip synchronization to create a fully conversational animated character. The AI speaks its responses aloud while the character's mouth moves in sync with the audio.
+
+### Features
+
+- **Streaming TTS**: LLM responses are converted to speech sentence-by-sentence as they're generated
+- **Real-time Lip Sync**: Character's mouth animates in perfect sync with spoken audio
+- **Sentence Chunking**: Intelligent sentence boundary detection for natural speech cadence
+- **Concurrent Processing**: Text streams from LLM while audio synthesizes and plays
+- **Character Voice**: Automatically uses character's default voice (can be overridden)
+
+### Quick Start
+
+```bash
+# Basic voice chat (uses Ollama + character's default voice)
+./dev.sh run --chat --chat-voice
+
+# With specific character
+./dev.sh run --chat --chat-voice --character robot
+
+# With OpenAI backend
+./dev.sh run --chat --chat-voice --llm-backend openai --character alien
+
+# Override voice
+./dev.sh run --chat --chat-voice --character cat --voice en-US-GuyNeural
+```
+
+### How It Works
+
+1. **User Types Message** → Sent to LLM
+2. **LLM Streams Response** → Tokens appear in real-time on screen
+3. **Sentence Detection** → Complete sentences are detected as tokens stream
+4. **TTS Synthesis** → Each sentence is synthesized to audio immediately
+5. **Audio Playback** → Audio plays with lip sync while next sentences synthesize
+6. **Expression Updates** → Character expression changes based on sentiment
+
+### Architecture
+
+```
+User Input → LLM (Ollama/OpenAI)
+             ↓ (streaming tokens)
+          Sentence Chunker
+             ↓ (complete sentences)
+          TTS Engine (Edge TTS)
+             ↓ (audio + word timings)
+          Audio Queue
+             ↓
+      Audio Player + Viseme Controller
+             ↓
+      Lip Sync Animation
+```
+
+### Sentence Chunking
+
+The `SentenceChunker` class intelligently detects sentence boundaries:
+- Detects `.`, `!`, `?` as sentence terminators
+- Handles abbreviations (Mr., Dr., etc.) correctly
+- Buffers tokens until complete sentence
+- Yields sentences immediately for TTS
+
+**Example:**
+
+```
+Stream: "Hello" " there" "!" " How" " are" " you" "?"
+
+Chunks:
+  1. "Hello there!"  → Synthesize → Play
+  2. "How are you?"  → Synthesize → Play
+```
+
+### Voice Chat Controller
+
+The `VoiceChatController` manages the voice-chat pipeline:
+
+```python
+from src.chat import VoiceChatController, stream_with_voice
+from src.audio import EdgeTTSEngine
+
+# Create TTS engine
+tts = EdgeTTSEngine(voice="en-US-AriaNeural")
+
+# Create voice controller
+voice_controller = VoiceChatController(tts, voice="en-US-AriaNeural")
+
+# Stream with voice
+async for token, expression, speech_chunk in stream_with_voice(
+    chat_session,
+    user_message,
+    voice_controller
+):
+    if token:
+        print(token, end="", flush=True)  # Display text
+
+    if speech_chunk:
+        # Play audio with lip sync
+        play_with_lipsync(speech_chunk)
+```
+
+### Benefits
+
+**Without `--chat-voice`:**
+- Fast text-only responses
+- No audio synthesis delay
+- Lower bandwidth usage
+
+**With `--chat-voice`:**
+- Fully conversational AI
+- Natural voice interactions
+- Immersive experience with lip sync
+- More engaging and lifelike
+
+### Performance
+
+- **First Sentence Latency**: 1-3 seconds (TTS synthesis)
+- **Subsequent Sentences**: Overlapped (synthesize while previous plays)
+- **Memory**: +50MB for audio buffering
+- **Network**: TTS requires internet (Edge TTS cloud service)
+
+### Comparison with Speak Mode
+
+| Feature | `--speak` Mode | `--chat --chat-voice` Mode |
+|---------|----------------|----------------------------|
+| Input | Predefined text | Interactive conversation |
+| AI | None | LLM (Ollama/OpenAI) |
+| Voice | TTS all at once | TTS sentence-by-sentence |
+| Lip Sync | Yes | Yes |
+| Streaming | No | Yes |
+| Expression | Static | Dynamic (sentiment-based) |
+
+### Example Session
+
+```bash
+$ ./dev.sh run --chat --chat-voice --character robot
+
+Initializing chat mode with robot character...
+LLM Backend: ollama
+Voice Mode: Enabled (using en-US-GuyNeural)
+
+==============================================================================
+CHAT MODE - Interactive Conversation
+(with Voice and Lip Sync)
+==============================================================================
+Character: robot
+Personality: Logical, precise, and technical AI
+Voice: en-US-GuyNeural
+
+Controls:
+  - Type your message and press Enter
+  - Type 'quit' or 'exit' to end
+  - Type 'clear' to clear conversation history
+==============================================================================
+
+You: What are you?
+
+Robot: [Speaking with lip sync] Processing your inquiry... I am a robotic entity
+designed to assist with logical analysis and technical queries. My primary
+function is to provide precise, data-driven responses.
+
+You: Tell me a joke.
+
+Robot: [Speaking with lip sync] Initiating humor protocol... Why do programmers
+prefer dark mode? Because light attracts bugs. Analysis complete.
+```
+
+### Troubleshooting
+
+**Audio not playing:**
+- Check system audio is working
+- Verify internet connection (TTS requires cloud access)
+- Check audio device permissions
+
+**Lip sync out of sync:**
+- Reduce FPS if system is slow (`--fps 10`)
+- Use lower quality preset (`--quality low`)
+- Check CPU usage
+
+**TTS synthesis slow:**
+- First sentence always has delay (synthesis time)
+- Subsequent sentences overlap with playback
+- Network latency affects synthesis speed
+
+### API Usage
+
+```python
+from src.chat import ChatSession, VoiceChatController, stream_with_voice
+from src.audio import EdgeTTSEngine, AudioPlayer
+from src.model.visemes import VisemeController
+import asyncio
+
+async def voice_chat_example():
+    # Setup
+    chat_session = ChatSession(character_name="robot", backend_type="ollama")
+    tts = EdgeTTSEngine(voice="en-US-GuyNeural")
+    voice_controller = VoiceChatController(tts)
+    audio_player = AudioPlayer()
+    viseme_controller = VisemeController()
+
+    # User message
+    user_message = "Hello, robot!"
+
+    # Stream with voice
+    async for token, expression, speech_chunk in stream_with_voice(
+        chat_session, user_message, voice_controller
+    ):
+        # Display token
+        if token:
+            print(token, end="", flush=True)
+
+        # Play audio chunk
+        if speech_chunk and speech_chunk.audio_file:
+            audio_player.load(speech_chunk.audio_file)
+            audio_player.play()
+
+            # Lip sync animation loop
+            from src.audio import LipSyncGenerator
+            lipsync_gen = LipSyncGenerator()
+            viseme_cues = lipsync_gen.generate_from_words(
+                speech_chunk.text,
+                speech_chunk.word_timings
+            )
+            viseme_controller.set_cues(viseme_cues)
+
+            while audio_player.is_playing():
+                position = audio_player.get_position()
+                mouth_params = viseme_controller.update(position)
+                # Update head.state with mouth_params
+                await asyncio.sleep(0.033)  # ~30 FPS
+
+            audio_player.stop()
+
+    # Cleanup
+    voice_controller.cleanup()
+    audio_player.cleanup()
+
+asyncio.run(voice_chat_example())
+```
+
+### Implementation Details
+
+**Files Created:**
+- `src/chat/voice_chat.py` - Voice chat controller and sentence chunker
+
+**Files Modified:**
+- `src/chat/__init__.py` - Export voice chat classes
+- `src/main.py` - Add `--chat-voice` flag and voice chat integration
+
+**Key Classes:**
+
+**SentenceChunker**
+- Buffers streaming tokens
+- Detects sentence boundaries
+- Handles abbreviations
+- Yields complete sentences
+
+**VoiceChatController**
+- Manages TTS synthesis pipeline
+- Creates temporary audio files
+- Tracks audio chunks
+- Cleanup management
+
+**SpeechChunk**
+- Dataclass for sentence + audio + timings
+- Passed through streaming pipeline
+- Used for playback and lip sync
+
+### Future Enhancements
+
+- **Voice Activity Detection**: Skip TTS when AI is "listening"
+- **Interrupt Support**: User can interrupt while AI is speaking
+- **Audio Effects**: Voice modulation, reverb, filters
+- **Multi-voice**: Multiple characters in conversation
+- **Emotion in Voice**: Adjust tone based on sentiment
+
+---
+
 ## Credits
 
-Stages 9-11 implementation includes:
+Stages 9-12 implementation includes:
 - Character personality system design
 - Voice-to-character matching
 - Docker containerization
@@ -633,6 +914,9 @@ Stages 9-11 implementation includes:
 - Ollama and OpenAI integrations
 - Sentiment-based expression system
 - Streaming chat interface
+- Voice-enabled conversational AI
+- Sentence chunking for real-time TTS
+- Integrated lip sync with streaming responses
 
 ---
 

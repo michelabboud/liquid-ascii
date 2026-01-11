@@ -23,6 +23,7 @@ A terminal-based ASCII art animation system featuring a "talking head" character
 - **Talking Head Animation** - Viseme-based lip synchronization
 - **Text-to-Speech Integration** - Uses Microsoft Edge TTS with character-matched voices
 - **Interactive Chat Mode** - Conversation with LLM-powered character personalities (Ollama/OpenAI)
+- **Voice-Enabled Chat** - AI speaks its responses aloud with perfect lip synchronization
 - **12 Character Presets** - Unique appearances and personalities (robot, alien, cat, dog, baby, elder, skull, etc.)
 - **Visual Effects** - Particles, motion trails, glitch effects, scanlines, matrix rain
 - **Performance Optimization** - Quality presets for different hardware capabilities
@@ -134,6 +135,9 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions and troubles
 # Requires Ollama (local) or OpenAI API key
 ./dev.sh run --chat --character robot
 
+# With voice output and lip sync (NEW in v0.2.0!)
+./dev.sh run --chat --chat-voice --character robot
+
 # With specific backend
 ./dev.sh run --chat --llm-backend openai --character alien
 
@@ -191,6 +195,7 @@ liquid-ascii [options]
 --voice, -v NAME        TTS voice (default: auto-select per character)
 --llm-backend TYPE      LLM backend (ollama or openai)
 --llm-model NAME        LLM model name
+--chat-voice            Enable voice output in chat mode (AI speaks with lip sync)
 
 # Performance
 --quality, -q LEVEL     Quality preset (low, medium, high, ultra, auto)
@@ -331,7 +336,7 @@ Comprehensive guides for all features:
 - **[QUICKSTART.md](QUICKSTART.md)** - Quick reference for all commands
 - **[INSTALL.md](INSTALL.md)** - Detailed installation instructions
 - **[FEATURES.md](docs/FEATURES.md)** - Stages 5-8 features (performance, characters, animations, effects)
-- **[STAGES-9-11.md](docs/STAGES-9-11.md)** - Stages 9-11 features (voice personality, distribution, chat mode)
+- **[STAGES-9-11.md](docs/STAGES-9-11.md)** - Stages 9-12 features (voice personality, distribution, chat mode, voice-chat)
 - **[BUILD.md](BUILD.md)** - Building, packaging, and distribution guide
 - **[TODO.md](TODO.md)** - Development roadmap and future features
 - **[CLAUDE.md](CLAUDE.md)** - Developer guidance for Claude Code

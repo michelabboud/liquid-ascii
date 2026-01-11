@@ -401,6 +401,8 @@ async def run_chat_mode(
     quality: str = "high",
     llm_backend: str = "ollama",
     llm_model: Optional[str] = None,
+    enable_voice: bool = False,
+    voice: Optional[str] = None,
 ):
     """
     Run interactive chat mode with LLM.
@@ -412,8 +414,10 @@ async def run_chat_mode(
         quality: Quality level
         llm_backend: LLM backend type
         llm_model: LLM model name (optional)
+        enable_voice: Enable voice output with TTS and lip sync
+        voice: TTS voice name (optional, defaults to character voice)
     """
-    from .chat import ChatSession
+    from .chat import ChatSession, VoiceChatController, stream_with_voice
 
     print(f"Initializing chat mode with {character} character...")
     print(f"LLM Backend: {llm_backend}")
@@ -456,12 +460,36 @@ async def run_chat_mode(
     head.set_expression("neutral")
     display.set_color_scheme(color_scheme)
 
+    # Set up voice if enabled
+    voice_controller = None
+    audio_player = None
+    viseme_controller = None
+
+    if enable_voice:
+        # Use character's default voice if not specified
+        if voice is None:
+            voice = head.default_voice
+
+        print(f"Voice Mode: Enabled (using {voice})")
+
+        # Create TTS engine and voice controller
+        tts_engine = EdgeTTSEngine(voice=voice)
+        voice_controller = VoiceChatController(tts_engine, voice=voice)
+
+        # Create audio player and viseme controller
+        audio_player = AudioPlayer()
+        viseme_controller = VisemeController()
+
     print()
     print("=" * 70)
     print("CHAT MODE - Interactive Conversation")
+    if enable_voice:
+        print("(with Voice and Lip Sync)")
     print("=" * 70)
     print(f"Character: {character}")
     print(f"Personality: {chat_session.bot.personality.description}")
+    if enable_voice:
+        print(f"Voice: {voice}")
     print()
     print("Controls:")
     print("  - Type your message and press Enter")
@@ -542,16 +570,75 @@ async def run_chat_mode(
 
             # Get response from LLM (streaming)
             response_text = []
+            audio_queue = []  # Queue of audio chunks to play
+
             try:
-                async for token, expression in chat_session.send_message_stream(user_input):
-                    response_text.append(token)
-                    print(token, end="", flush=True)
+                if enable_voice and voice_controller:
+                    # Voice-enabled chat with TTS
+                    async for token, expression, speech_chunk in stream_with_voice(
+                        chat_session, user_input, voice_controller
+                    ):
+                        if token:
+                            response_text.append(token)
+                            print(token, end="", flush=True)
 
-                    # Update expression dynamically
-                    if expression != head.current_expression_name:
-                        head.set_expression(expression)
+                        # Update expression dynamically
+                        if expression != head.current_expression_name:
+                            head.set_expression(expression)
 
-                print()  # New line after response
+                        # Queue audio chunk for playback
+                        if speech_chunk and speech_chunk.audio_file:
+                            audio_queue.append(speech_chunk)
+
+                    print()  # New line after response
+
+                    # Play all audio chunks with lip sync
+                    if audio_queue and audio_player and viseme_controller:
+                        for chunk in audio_queue:
+                            # Load and play audio
+                            audio_player.load(chunk.audio_file)
+                            audio_player.play()
+
+                            # Generate viseme cues from word timings
+                            if chunk.word_timings:
+                                from .audio import LipSyncGenerator
+                                lipsync_gen = LipSyncGenerator()
+                                viseme_cues = lipsync_gen.generate_from_words(
+                                    chunk.text, chunk.word_timings
+                                )
+                                viseme_controller.set_cues(viseme_cues)
+
+                                # Animate while audio plays
+                                while audio_player.is_playing():
+                                    # Update viseme based on playback position
+                                    position = audio_player.get_position()
+                                    mouth_params = viseme_controller.update(position)
+                                    head.state.mouth_openness = mouth_params["openness"]
+                                    head.state.mouth_width = mouth_params["width"]
+                                    head.state.lip_pucker = mouth_params["pucker"]
+
+                                    # Render frame with lip sync
+                                    head.update(1.0 / fps)
+                                    sdf = head.get_sdf()
+                                    frame = raymarcher.render_frame(sdf)
+                                    display.clear()
+                                    print(frame)
+
+                                    await asyncio.sleep(1.0 / fps)
+
+                            audio_player.stop()
+
+                else:
+                    # Text-only chat (original behavior)
+                    async for token, expression in chat_session.send_message_stream(user_input):
+                        response_text.append(token)
+                        print(token, end="", flush=True)
+
+                        # Update expression dynamically
+                        if expression != head.current_expression_name:
+                            head.set_expression(expression)
+
+                    print()  # New line after response
 
                 # Add assistant message to log
                 full_response = "".join(response_text)
@@ -571,7 +658,12 @@ async def run_chat_mode(
             print("\n\nChat ended.")
             running = False
 
+    # Cleanup
     display.cleanup()
+    if voice_controller:
+        voice_controller.cleanup()
+    if audio_player:
+        audio_player.cleanup()
 
 
 def main():
@@ -694,6 +786,11 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         help="LLM model name (default: llama3.2:latest for ollama, gpt-4o-mini for openai)"
     )
     parser.add_argument(
+        "--chat-voice",
+        action="store_true",
+        help="Enable voice output in chat mode (AI speaks responses with lip sync)"
+    )
+    parser.add_argument(
         "--list-llm-backends",
         action="store_true",
         help="List available LLM backends"
@@ -783,6 +880,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             quality=args.quality,
             llm_backend=args.llm_backend,
             llm_model=args.llm_model,
+            enable_voice=args.chat_voice,
+            voice=args.voice,
         ))
     elif args.speak:
         asyncio.run(run_speak_mode(

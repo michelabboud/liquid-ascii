@@ -20,6 +20,13 @@ from .personality import (
     get_all_personalities,
     PERSONALITIES,
 )
+from .voice_chat import (
+    VoiceChatController,
+    SentenceChunker,
+    SpeechChunk,
+    stream_with_voice,
+    chunk_text_for_tts,
+)
 
 __all__ = [
     # Bot
@@ -41,4 +48,10 @@ __all__ = [
     "get_system_prompt",
     "get_all_personalities",
     "PERSONALITIES",
+    # Voice Chat
+    "VoiceChatController",
+    "SentenceChunker",
+    "SpeechChunk",
+    "stream_with_voice",
+    "chunk_text_for_tts",
 ]
