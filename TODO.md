@@ -4,7 +4,7 @@ This document outlines planned features, improvements, and long-term goals for t
 
 ---
 
-## Current Version (0.1.0)
+## Current Version (0.2.0-dev)
 
 ### ✅ Completed Features
 
@@ -28,6 +28,12 @@ This document outlines planned features, improvements, and long-term goals for t
 - [x] WSL audio support (fix scripts and documentation)
 - [x] uv package manager integration
 - [x] .gitignore for project hygiene
+- [x] Interactive controls with keyboard (--interactive flag)
+- [x] Expression system with 10 presets and smooth transitions
+- [x] Gesture system (nodding, shaking, looking around)
+- [x] Visual effects system (particles, trails, glitch, scanlines, matrix rain, depth-of-field)
+- [x] Effect CLI flags with 6 presets
+- [x] Configuration system (YAML/JSON) with auto-discovery and presets
 
 ---
 
@@ -35,97 +41,79 @@ This document outlines planned features, improvements, and long-term goals for t
 
 These features provide immediate value and can be implemented relatively quickly.
 
-### 1. 🎮 Interactive Controls
+### 1. 🎮 Interactive Controls ✅ COMPLETED
 **Priority: HIGH** | **Effort: Medium** | **Impact: High** | **Version: 0.2.0**
 
 Add keyboard controls during playback for real-time interaction.
 
 **Features:**
-- [ ] Arrow keys to move/rotate the head
+- [x] Arrow keys to move/rotate the head
   - `Up/Down`: Tilt head forward/backward (X rotation)
   - `Left/Right`: Turn head left/right (Y rotation)
   - `Q/E`: Lean head left/right (Z rotation)
-- [ ] Number keys (1-9) to change expressions
+- [x] Number keys (1-9) to change expressions
   - `1`: Neutral, `2`: Happy, `3`: Sad, `4`: Angry
-  - `5`: Surprised, `6`: Confused, `7`: Tired, `8`: Wink
-- [ ] Control keys
+  - `5`: Surprised, `6`: Confused, `7`: Tired, `8`: Wink, `9`: Thinking
+- [x] Control keys
   - `Space`: Toggle pause/resume animation
   - `C`: Cycle through color schemes
   - `R`: Toggle rainbow modes (horizontal → vertical → radial → etc.)
-  - `V`: Cycle through voices (in speak mode)
   - `+/-`: Adjust FPS up/down
   - `H`: Toggle help overlay
   - `ESC` or `Q`: Quit
-- [ ] Display keybindings help on screen (bottom status bar)
+- [x] Display keybindings help on screen (toggle with 'H')
 - [ ] Mouse support (optional) for dragging head orientation
 
-**Implementation:**
-- Create `src/terminal/input.py` - Non-blocking keyboard handler
-- Create `src/model/expressions.py` - Expression presets (see #2)
-- Modify `src/terminal/display.py` - Integrate input handling
-- Modify `src/main.py` - Add `--interactive` flag
-- Use `blessed` terminal for non-blocking keyboard input
+**Implementation:** ✅ COMPLETE
+- [x] Created `src/terminal/input.py` - Non-blocking keyboard handler with InteractiveInputHandler and InteractiveController
+- [x] Created `src/model/expressions.py` - 10 expression presets with ExpressionManager
+- [x] Created `src/model/gestures.py` - Gesture system (nodding, shaking, etc.)
+- [x] Integrated input handling into `src/main.py` with `--interactive` flag
+- [x] Help overlay system with detailed keybinding display
 
 **Technical Notes:**
 - Non-blocking input with `term.inkey(timeout=0)`
-- Input buffer to queue keypresses
-- State machine for mode switching
-- Thread-safe input handling
+- Expression transitions with easing functions
+- Head tilt accumulation for smooth controls
+- Pause/resume functionality with visual indicator
 
 ---
 
-### 2. 😊 Expression System
+### 2. 😊 Expression System ✅ COMPLETED
 **Priority: HIGH** | **Effort: Medium** | **Impact: High** | **Version: 0.2.0**
 
 Implement predefined facial expressions with smooth transitions.
 
 **Expression Presets:**
-- [ ] **Neutral** (default)
-  - Eyebrows: 0.0, Smile: 0.0, Eyes: normal
-- [ ] **Happy**
-  - Raised eyebrows (+0.3), wide smile (+0.8), slight eye squint
-- [ ] **Sad**
-  - Lowered eyebrows (-0.5), downturned mouth (-0.3), droopy eyes
-- [ ] **Angry**
-  - Furrowed brows (-0.8), tight mouth (width -0.2), intense stare
-- [ ] **Surprised**
-  - Raised eyebrows (+0.8), wide eyes (+0.3), open mouth (+0.6)
-- [ ] **Confused**
-  - One raised eyebrow (asymmetric), tilted head, slight frown
-- [ ] **Tired**
-  - Half-closed eyes (blink 0.5), slight mouth droop, head tilt forward
-- [ ] **Wink**
-  - One eye closed (asymmetric blink), slight smile
-- [ ] **Thinking**
-  - Eyes looking up-left, one raised eyebrow, pursed lips
+- [x] **Neutral** (default) - Eyebrows: 0.0, Smile: 0.0, Eyes: normal
+- [x] **Happy** - Raised eyebrows (+0.3), wide smile (+0.8), slight eye squint
+- [x] **Sad** - Lowered eyebrows (-0.5), downturned mouth (-0.3), droopy eyes
+- [x] **Angry** - Furrowed brows (-0.8), tight mouth (width -0.2), intense stare
+- [x] **Surprised** - Raised eyebrows (+0.8), wide eyes (+0.3), open mouth (+0.6)
+- [x] **Confused** - One raised eyebrow (asymmetric), tilted head, slight frown
+- [x] **Tired** - Half-closed eyes (blink 0.5), slight mouth droop, head tilt forward
+- [x] **Wink** - One eye closed (asymmetric blink), slight smile
+- [x] **Thinking** - Eyes looking up-left, one raised eyebrow, pursed lips
+- [x] **Excited** - High eyebrows, big smile, open mouth
+- [x] **Skeptical** - One eyebrow raised high, slight frown, head tilt
 
 **Features:**
-- [ ] Smooth transitions between expressions (0.5-1 second)
-- [ ] Easing functions for natural movement (ease-in-out)
+- [x] Smooth transitions between expressions (0.3-1.2 seconds)
+- [x] Easing functions for natural movement (ease-in-out with smoothstep)
+- [x] Expression blending and interpolation
+- [x] Expression triggers via API: `head.set_expression("happy")`
+- [x] Expression control via keyboard (1-9 keys in interactive mode)
+- [x] Custom expression duration support
 - [ ] Expression queue/sequencing
-- [ ] Random idle expressions (optional)
-- [ ] Expression triggers:
-  - Manual via API: `head.set_expression("happy")`
-  - Automatic based on text sentiment (optional)
-  - Timed expression changes
+- [ ] Random idle expressions
+- [ ] Automatic sentiment-based expressions
 
-**Implementation:**
-- Create `src/model/expressions.py`:
-  ```python
-  @dataclass
-  class Expression:
-      name: str
-      eyebrow_raise: float
-      smile_amount: float
-      blink_amount: float
-      eye_squint: float
-      mouth_width_mod: float
-      head_tilt: Tuple[float, float, float]
-  ```
-- Add `ExpressionManager` class
-- Modify `src/model/head.py` - Add expression support
-- Modify `src/main.py` - Add `--expression <name>` CLI option
-- Create expression transition interpolator
+**Implementation:** ✅ COMPLETE
+- [x] Created `src/model/expressions.py` with Expression dataclass and ExpressionManager
+- [x] Integrated into `src/model/head.py` with expression support
+- [x] Added `--expression <name>` CLI option
+- [x] Expression transition interpolator with time-based blending
+- [x] Support for eyebrow asymmetry, eye asymmetry (winking), head tilt, eye gaze
 
 ---
 
@@ -1238,20 +1226,23 @@ jobs:
 
 ## 📊 Priority Matrix Summary
 
+### ✅ Recently Completed (v0.2.0)
+1. ✅ .gitignore and project cleanup
+2. ✅ **Interactive Controls** (#1) - Keyboard controls, expressions, FPS adjustment
+3. ✅ **Expression System** (#2) - 10 presets with smooth transitions
+4. ✅ **Effect CLI Flags** (#6 partial) - Particles, trails, glitch, scanlines, matrix rain, depth-of-field
+5. ✅ **Configuration System** (#14) - YAML/JSON config with presets
+6. ✅ **CI/CD Pipeline** (#17) - 4 GitHub Actions workflows, automated testing
+
 ### 🔥 Immediate Priority (v0.2.0 - Next 1-2 months)
-1. ✅ .gitignore and project cleanup (DONE)
-2. **Interactive Controls** (#1) - High impact demo feature
-3. **Expression System** (#2) - Emotional depth
-4. **Test Coverage** (#16) - Quality foundation
-5. **CI/CD Pipeline** (#17) - Automation
-6. **Performance Optimizations** (#3) - Critical for usability
+1. **Test Coverage** (#16) - Expand from 31 to comprehensive tests
+2. **Performance Optimizations** (#3) - Target 30 FPS on WSL, adaptive quality
+3. **Package Distribution** (#13) - PyPI publication, Docker image
 
 ### ⚡ High Priority (v0.2.0-0.3.0 - 2-4 months)
-1. **Package Distribution** (#13) - PyPI publication
-2. **Configuration System** (#14) - User customization
-3. **More Characters** (#4) - Content expansion
-4. **Voice Personality Matching** (#7) - Polish
-5. **Examples & Demos** (#15) - Showcase features
+1. **More Characters** (#4) - Alien, cat, dog, baby, elder, skull presets
+2. **Voice Personality Matching** (#7) - Auto-select voice per character
+3. **Examples & Demos** (#15) - Tutorial, showcase, story demos
 
 ### 🎯 Medium Priority (v0.3.0-0.4.0 - 4-6 months)
 1. **Chat Mode** (#10) - Game-changing feature
