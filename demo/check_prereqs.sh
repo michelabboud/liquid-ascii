@@ -49,9 +49,16 @@ else
     echo "  Install: curl -LsSf https://astral.sh/uv/install.sh | sh"
 fi
 
-# Check pip
+# Check pip or uv pip
 echo -n "Checking pip... "
-if python3 -m pip --version >/dev/null 2>&1; then
+if command -v uv >/dev/null 2>&1; then
+    # If uv is available, check uv pip
+    if uv pip --version >/dev/null 2>&1; then
+        echo -e "${GREEN}✓${NC} Available (uv pip)"
+    else
+        echo -e "${YELLOW}⚠${NC} uv pip not working (but uv is available)"
+    fi
+elif python3 -m pip --version >/dev/null 2>&1; then
     echo -e "${GREEN}✓${NC} Available"
 else
     echo -e "${RED}✗${NC} Not found"

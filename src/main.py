@@ -282,6 +282,7 @@ def run_demo_mode(
     interactive: bool = False,
     quality: str = "high",
     compositor: EffectsCompositor | None = None,
+    duration: float | None = None,
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -295,6 +296,7 @@ def run_demo_mode(
         interactive: Enable keyboard controls
         quality: Quality level (low/medium/high/ultra/auto)
         compositor: Optional effects compositor for visual effects
+        duration: Duration in seconds (None = run until interrupted)
     """
     from .terminal import (
         PRESET_SCHEMES,
@@ -328,13 +330,20 @@ def run_demo_mode(
     current_scheme_idx = color_schemes.index(color_scheme) if color_scheme in color_schemes else 0
     current_rainbow_idx = rainbow_modes.index(rainbow_mode) if rainbow_mode in rainbow_modes else 0
     current_fps = fps
+    elapsed_time = 0.0
 
     if interactive:
         input_handler = InteractiveInputHandler(display.term)
         controller = InteractiveController(input_handler)
 
     def update(dt: float) -> str:
-        nonlocal current_scheme_idx, current_rainbow_idx, current_fps, rainbow_mode
+        nonlocal current_scheme_idx, current_rainbow_idx, current_fps, rainbow_mode, elapsed_time
+
+        # Check duration limit
+        if duration is not None:
+            elapsed_time += dt
+            if elapsed_time >= duration:
+                return None  # Signal to stop the loop
 
         # Process interactive input
         if interactive and controller:
@@ -1013,6 +1022,13 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
     )
     parser.add_argument("--fps", type=float, default=30.0, help="Target FPS (default: 30)")
     parser.add_argument(
+        "--duration",
+        "-d",
+        type=float,
+        default=None,
+        help="Duration in seconds for demo mode (default: run until interrupted)",
+    )
+    parser.add_argument(
         "--quality",
         "-q",
         type=str,
@@ -1385,6 +1401,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             interactive=args.interactive,
             quality=args.quality,
             compositor=compositor,
+            duration=args.duration,
         )
 
 
