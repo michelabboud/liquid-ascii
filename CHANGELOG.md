@@ -7,19 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Demo folder with ready-made shell scripts
-  - `check_prereqs.sh` - System requirements validation
-  - `install.sh` - Automated dependency installation
+## [0.3.0] - 2026-01-11
+
+### Added - Demo System
+- **Demo folder with ready-made shell scripts**
+  - `check_prereqs.sh` - System requirements validation with color-coded output
+  - `install.sh` - Automated dependency installation with uv/pip support
   - `demo_basic.sh` - Static frame demo
-  - `demo_animated.sh` - 15-second animation demo
-  - `demo_characters.sh` - Gallery of all character types
-  - `demo_expressions.sh` - Gallery of all expressions
+  - `demo_animated.sh` - 15-second animation demo at 30 FPS
+  - `demo_characters.sh` - Gallery of all 6 character types
+  - `demo_expressions.sh` - Gallery of all 6 facial expressions
   - `demo_all_features.sh` - Comprehensive feature showcase
-  - Detailed README.md with troubleshooting guide
+  - `demo/requirements.txt` - Self-contained dependency list
+  - `demo/README.md` - Complete documentation with troubleshooting
+- **Smart venv handling** in install.sh
+  - Reuses existing virtual environment instead of recreating
+  - Safe to run multiple times (idempotent)
+  - Verifies activation before installing requirements
+  - Clear error messages and user feedback
+
+### Added - Dynamic Resolution
+- **Automatic resolution calculation** based on terminal size
+  - Detects terminal width and height dynamically
+  - Maintains proper 2:1 width:height aspect ratio for ASCII art
+  - Applies configurable margins (default: 2 characters)
+  - Respects min/max constraints (40-200 width, 20-100 height)
+  - Chooses limiting dimension automatically
+- **Applied to all rendering modes**:
+  - Demo mode, speak mode, tutor mode, chat mode, static mode
+  - Effects compositor uses dynamic resolution
+  - Chat mode reserves space for UI (5 lines)
 
 ### Changed
+- Resolution now adapts to terminal size instead of fixed 100×60
 - Project status updated to "Alpha" (In Development)
+- Demo folder is self-contained with own requirements.txt
+
+### Technical Details
+- Terminal 198×50 → Render 92×46 (2.00:1 ratio)
+- Terminal 80×24 → Render 40×20 (2.00:1 ratio)
+- Terminal 100×60 → Render 96×48 (2.00:1 ratio)
+- ASCII characters are ~2× taller than wide, hence 2:1 ratio for proper proportions
 
 ## [0.2.0] - 2026-01-11
 
