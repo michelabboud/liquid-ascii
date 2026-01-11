@@ -549,11 +549,15 @@ def run_static_mode(
     character: str = "default",
     expression: str | None = None,
     quality: str = "high",
+    color_scheme_name: str = "default",
 ):
     """
-    Render a single static frame (no animation).
+    Render a single static frame with feature-based coloring.
     """
-    head, raymarcher = create_head_renderer(80, 40, character, quality)
+    from .terminal.colors import PRESET_SCHEMES
+
+    head, raymarcher = create_head_renderer(160, 80, character, quality)  # Larger
+    color_scheme = PRESET_SCHEMES[color_scheme_name]
 
     # Set initial expression if specified
     if expression:
@@ -564,8 +568,9 @@ def run_static_mode(
         time.sleep(0.1)
         head.update(0.1)
 
-    sdf = head.get_sdf()
-    frame = raymarcher.render_frame(sdf)
+    # Use feature-based rendering for colored facial features
+    sdf_with_features = head.get_sdf_with_features()
+    frame = raymarcher.render_frame_with_features(sdf_with_features, color_scheme)
     print(frame)
 
 
@@ -1197,6 +1202,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             args.character,
             expression=args.expression,
             quality=args.quality,
+            color_scheme_name=args.scheme,
         )
     elif args.chat:
         asyncio.run(

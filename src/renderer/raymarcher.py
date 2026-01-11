@@ -16,6 +16,7 @@ from .shading import ASCIIShader
 
 # Type alias for SDF functions
 SDFFunc = Callable[[np.ndarray], float]
+FeatureSDFFunc = Callable[[np.ndarray], tuple[float, any]]  # Returns (distance, feature)
 
 
 class Raymarcher:
@@ -253,6 +254,109 @@ class Raymarcher:
             lines.append("".join(chr(c) for c in row))
 
         return "\n".join(lines)
+
+    def render_frame_with_features(
+        self,
+        sdf_with_features: FeatureSDFFunc,
+        color_scheme,
+        background: str = " ",
+    ) -> str:
+        """
+        Render frame with feature-specific coloring (eyes, mouth, skin).
+
+        Args:
+            sdf_with_features: SDF function that returns (distance, feature_type)
+            color_scheme: ColorScheme with eye_color, pupil_color, mouth_color
+            background: Background character
+
+        Returns:
+            Multi-line ASCII string with ANSI color codes
+        """
+        from ..terminal.colors import rgb_to_ansi_escape, reset_color
+        from ..model.head import FacialFeature
+
+        # Generate rays
+        origins, directions = self.camera.get_rays_batch(self.width, self.height)
+
+        # Buffers
+        hit_mask = np.zeros((self.height, self.width), dtype=bool)
+        hit_points = np.zeros((self.height, self.width, 3))
+        features = np.zeros((self.height, self.width), dtype=object)
+        normals = np.zeros((self.height, self.width, 3))
+
+        # Raymarch each pixel
+        for y in range(self.height):
+            for x in range(self.width):
+                t = 0.0
+                origin = origins[y, x]
+                direction = directions[y, x]
+
+                for _ in range(self.max_steps):
+                    point = origin + t * direction
+                    dist, feature = sdf_with_features(tuple(point))
+
+                    if dist < self.epsilon:
+                        hit_mask[y, x] = True
+                        hit_points[y, x] = point
+                        features[y, x] = feature
+                        # Compute normal using just distance
+                        normals[y, x] = self._compute_normal_for_feature(point, sdf_with_features)
+                        break
+
+                    t += dist
+                    if t > self.max_distance:
+                        break
+
+        # Compute lighting
+        view_dirs = -directions
+        intensities = self.shader.compute_lighting_batch(normals, view_dirs)
+        char_indices = self.shader.intensity_to_char_batch(intensities)
+
+        # Build colored output
+        lines = []
+        for y in range(self.height):
+            row = ""
+            for x in range(self.width):
+                if hit_mask[y, x]:
+                    char = self.shader.ramp[char_indices[y, x]]
+                    feature = features[y, x]
+                    intensity = intensities[y, x]
+
+                    # Select color based on feature
+                    if feature == FacialFeature.PUPIL:
+                        color = color_scheme.pupil_color
+                    elif feature == FacialFeature.EYE:
+                        color = color_scheme.eye_color
+                    elif feature == FacialFeature.MOUTH:
+                        color = color_scheme.mouth_color
+                    else:  # SKIN
+                        color = color_scheme.get_surface_color(intensity)
+
+                    # Apply color
+                    color_code = rgb_to_ansi_escape(color.r, color.g, color.b)
+                    row += f"{color_code}{char}{reset_color()}"
+                else:
+                    row += background
+
+            lines.append(row)
+
+        return "\n".join(lines)
+
+    def _compute_normal_for_feature(self, point: np.ndarray, sdf_with_features: FeatureSDFFunc) -> np.ndarray:
+        """Compute normal using feature SDF (extract just distance)."""
+        eps = 0.001
+        px, _ = sdf_with_features(tuple(point + np.array([eps, 0, 0])))
+        nx, _ = sdf_with_features(tuple(point - np.array([eps, 0, 0])))
+        py, _ = sdf_with_features(tuple(point + np.array([0, eps, 0])))
+        ny, _ = sdf_with_features(tuple(point - np.array([0, eps, 0])))
+        pz, _ = sdf_with_features(tuple(point + np.array([0, 0, eps])))
+        nz, _ = sdf_with_features(tuple(point - np.array([0, 0, eps])))
+
+        normal = np.array([(px - nx), (py - ny), (pz - nz)])
+        norm = np.linalg.norm(normal)
+        if norm > 0:
+            return normal / norm
+        return np.array([0, 1, 0])
 
 
 class AdaptiveRaymarcher(Raymarcher):
