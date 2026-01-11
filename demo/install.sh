@@ -44,19 +44,37 @@ else
     USE_UV=false
 fi
 
-# Create virtual environment
+# Create or use existing virtual environment
 echo ""
-echo "Setting up virtual environment..."
-if [ "$USE_UV" = true ]; then
-    uv venv "$VENV_DIR"
+if [ -d "$VENV_DIR" ]; then
+    echo "Virtual environment already exists at: $VENV_DIR"
+    echo "Using existing environment..."
 else
-    python3 -m venv "$VENV_DIR"
+    echo "Creating virtual environment..."
+    if [ "$USE_UV" = true ]; then
+        uv venv "$VENV_DIR"
+    else
+        python3 -m venv "$VENV_DIR"
+    fi
+    echo -e "${GREEN}✓${NC} Virtual environment created"
 fi
 
 # Activate virtual environment
-source "$VENV_DIR/bin/activate"
+echo "Activating virtual environment..."
+if [ -f "$VENV_DIR/bin/activate" ]; then
+    source "$VENV_DIR/bin/activate"
+    echo -e "${GREEN}✓${NC} Virtual environment activated"
+else
+    echo -e "${RED}✗${NC} Failed to activate virtual environment"
+    echo "Activation script not found: $VENV_DIR/bin/activate"
+    exit 1
+fi
 
-echo -e "${GREEN}✓${NC} Virtual environment created"
+# Verify activation
+if [ -z "$VIRTUAL_ENV" ]; then
+    echo -e "${RED}✗${NC} Virtual environment activation failed"
+    exit 1
+fi
 
 # Upgrade pip
 echo ""

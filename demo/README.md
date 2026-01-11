@@ -24,7 +24,7 @@ The demo folder is self-contained with its own `requirements.txt` and uses **uv*
 | Script | Description |
 |--------|-------------|
 | `check_prereqs.sh` | Check if Python 3.11+, terminal size, audio, and network are available |
-| `install.sh` | Create virtual environment with uv and install dependencies from demo/requirements.txt |
+| `install.sh` | Create/reuse virtual environment with uv and install/upgrade dependencies from demo/requirements.txt |
 | `requirements.txt` | Demo-specific dependencies (self-contained) |
 
 ### Demos
@@ -139,6 +139,8 @@ Optional features shown in specific demos:
 
 ### "Virtual environment not found"
 Run `./demo/install.sh` first to set up dependencies.
+
+**Note**: Running `./demo/install.sh` multiple times is safe - it will reuse the existing virtual environment and upgrade packages if needed.
 
 ### "Python 3.11+ required"
 Install Python 3.11 or newer:
