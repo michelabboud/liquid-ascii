@@ -11,6 +11,7 @@ from pathlib import Path
 
 try:
     import pyttsx3
+
     PYTTSX3_AVAILABLE = True
 except ImportError:
     PYTTSX3_AVAILABLE = False
@@ -33,20 +34,18 @@ class OfflineTTSEngine:
 
     def __init__(self):
         if not PYTTSX3_AVAILABLE:
-            raise ImportError(
-                "pyttsx3 not installed. Install with: uv pip install pyttsx3"
-            )
+            raise ImportError("pyttsx3 not installed. Install with: uv pip install pyttsx3")
 
         self.engine = pyttsx3.init()
 
     def list_voices(self) -> list[dict[str, str]]:
         """List available system voices."""
-        voices = self.engine.getProperty('voices')
+        voices = self.engine.getProperty("voices")
         return [
             {
-                'name': voice.name,
-                'id': voice.id,
-                'languages': voice.languages if hasattr(voice, 'languages') else [],
+                "name": voice.name,
+                "id": voice.id,
+                "languages": voice.languages if hasattr(voice, "languages") else [],
             }
             for voice in voices
         ]
@@ -54,22 +53,18 @@ class OfflineTTSEngine:
     def set_voice(self, voice_id: str | None = None):
         """Set voice by ID or use default."""
         if voice_id:
-            self.engine.setProperty('voice', voice_id)
+            self.engine.setProperty("voice", voice_id)
 
     def set_rate(self, rate: int = 150):
         """Set speech rate (words per minute). Default: 150."""
-        self.engine.setProperty('rate', rate)
+        self.engine.setProperty("rate", rate)
 
     def set_volume(self, volume: float = 1.0):
         """Set volume (0.0 to 1.0). Default: 1.0."""
-        self.engine.setProperty('volume', volume)
+        self.engine.setProperty("volume", volume)
 
     async def synthesize(
-        self,
-        text: str,
-        voice: str | None = None,
-        rate: int = 150,
-        output_dir: Path | None = None
+        self, text: str, voice: str | None = None, rate: int = 150, output_dir: Path | None = None
     ) -> dict:
         """
         Synthesize text to speech and save as audio file.
@@ -95,19 +90,16 @@ class OfflineTTSEngine:
 
         # Synthesize to file (blocking - run in executor)
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None,
-            lambda: self._synthesize_sync(text, str(audio_file))
-        )
+        await loop.run_in_executor(None, lambda: self._synthesize_sync(text, str(audio_file)))
 
         # Estimate duration (rough estimate based on text length and rate)
         word_count = len(text.split())
         duration = (word_count / rate) * 60  # Convert WPM to seconds
 
         return {
-            'audio_path': str(audio_file),
-            'duration': duration,
-            'word_timings': []  # Not available with pyttsx3
+            "audio_path": str(audio_file),
+            "duration": duration,
+            "word_timings": [],  # Not available with pyttsx3
         }
 
     def _synthesize_sync(self, text: str, output_file: str):
@@ -118,6 +110,7 @@ class OfflineTTSEngine:
 
 # Example usage
 if __name__ == "__main__":
+
     async def demo():
         if not PYTTSX3_AVAILABLE:
             print("Install pyttsx3: uv pip install pyttsx3")
@@ -132,9 +125,7 @@ if __name__ == "__main__":
 
         # Synthesize
         print("\nSynthesizing...")
-        result = await engine.synthesize(
-            "Hello! I am speaking using offline text to speech."
-        )
+        result = await engine.synthesize("Hello! I am speaking using offline text to speech.")
         print(f"Audio saved to: {result['audio_path']}")
         print(f"Duration: {result['duration']:.2f}s")
 

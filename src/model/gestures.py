@@ -366,10 +366,7 @@ class GestureSequencer:
 
     def is_complete(self) -> bool:
         """Check if sequence is complete."""
-        return (
-            self.current_index >= len(self.sequence)
-            and not self.controller.current_gesture
-        )
+        return self.current_index >= len(self.sequence) and not self.controller.current_gesture
 
     def reset(self):
         """Reset sequence to beginning."""

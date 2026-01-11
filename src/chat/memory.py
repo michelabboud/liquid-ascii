@@ -141,9 +141,7 @@ class ConversationMemory:
     @classmethod
     def from_dict(cls, data: dict) -> "ConversationMemory":
         """Create memory from dictionary."""
-        memory = cls(
-            max_messages=data["max_messages"], context_window=data["context_window"]
-        )
+        memory = cls(max_messages=data["max_messages"], context_window=data["context_window"])
 
         if data.get("system_message"):
             memory.system_message = Message.from_dict(data["system_message"])

@@ -111,7 +111,9 @@ def sdf_ellipsoid(p: Vec3, center: Vec3 = (0, 0, 0), radii: Vec3 = (1, 1, 1)) ->
     return k0 * (k0 - 1.0) / k1
 
 
-def sdf_ellipsoid_vec(p: np.ndarray, center: Vec3 = (0, 0, 0), radii: Vec3 = (1, 1, 1)) -> np.ndarray:
+def sdf_ellipsoid_vec(
+    p: np.ndarray, center: Vec3 = (0, 0, 0), radii: Vec3 = (1, 1, 1)
+) -> np.ndarray:
     """Vectorized ellipsoid SDF for batch evaluation."""
     center = _to_array(center)
     radii = _to_array(radii)
@@ -166,7 +168,7 @@ def sdf_torus(p: Vec3, center: Vec3 = (0, 0, 0), R: float = 1.0, r: float = 0.3)
     p = p - center
 
     # Project to XZ plane, compute distance to ring
-    q = np.array([np.sqrt(p[0]**2 + p[2]**2) - R, p[1]])
+    q = np.array([np.sqrt(p[0] ** 2 + p[2] ** 2) - R, p[1]])
     return length(q) - r
 
 
@@ -193,7 +195,9 @@ def sdf_capsule(p: Vec3, a: Vec3 = (0, -0.5, 0), b: Vec3 = (0, 0.5, 0), r: float
     return length(pa - ba * h) - r
 
 
-def sdf_cylinder(p: Vec3, center: Vec3 = (0, 0, 0), height: float = 1.0, radius: float = 0.5) -> float:
+def sdf_cylinder(
+    p: Vec3, center: Vec3 = (0, 0, 0), height: float = 1.0, radius: float = 0.5
+) -> float:
     """
     Signed distance to a vertical cylinder.
 
@@ -210,7 +214,7 @@ def sdf_cylinder(p: Vec3, center: Vec3 = (0, 0, 0), height: float = 1.0, radius:
     center = _to_array(center)
     p = p - center
 
-    d = np.array([np.sqrt(p[0]**2 + p[2]**2) - radius, abs(p[1]) - height])
+    d = np.array([np.sqrt(p[0] ** 2 + p[2] ** 2) - radius, abs(p[1]) - height])
     return min(max(d[0], d[1]), 0.0) + length(np.maximum(d, 0.0))
 
 
@@ -328,33 +332,21 @@ def sdf_rotate_y(p: Vec3, angle: float) -> np.ndarray:
     """Rotate point around Y axis."""
     p = _to_array(p)
     c, s = np.cos(angle), np.sin(angle)
-    return np.array([
-        c * p[0] + s * p[2],
-        p[1],
-        -s * p[0] + c * p[2]
-    ])
+    return np.array([c * p[0] + s * p[2], p[1], -s * p[0] + c * p[2]])
 
 
 def sdf_rotate_x(p: Vec3, angle: float) -> np.ndarray:
     """Rotate point around X axis."""
     p = _to_array(p)
     c, s = np.cos(angle), np.sin(angle)
-    return np.array([
-        p[0],
-        c * p[1] - s * p[2],
-        s * p[1] + c * p[2]
-    ])
+    return np.array([p[0], c * p[1] - s * p[2], s * p[1] + c * p[2]])
 
 
 def sdf_rotate_z(p: Vec3, angle: float) -> np.ndarray:
     """Rotate point around Z axis."""
     p = _to_array(p)
     c, s = np.cos(angle), np.sin(angle)
-    return np.array([
-        c * p[0] - s * p[1],
-        s * p[0] + c * p[1],
-        p[2]
-    ])
+    return np.array([c * p[0] - s * p[1], s * p[0] + c * p[1], p[2]])
 
 
 # =============================================================================
@@ -377,10 +369,12 @@ def compute_normal(p: Vec3, sdf_func, eps: float = 0.001) -> np.ndarray:
     p = _to_array(p)
 
     # Central differences for better accuracy
-    normal = np.array([
-        sdf_func((p[0] + eps, p[1], p[2])) - sdf_func((p[0] - eps, p[1], p[2])),
-        sdf_func((p[0], p[1] + eps, p[2])) - sdf_func((p[0], p[1] - eps, p[2])),
-        sdf_func((p[0], p[1], p[2] + eps)) - sdf_func((p[0], p[1], p[2] - eps))
-    ])
+    normal = np.array(
+        [
+            sdf_func((p[0] + eps, p[1], p[2])) - sdf_func((p[0] - eps, p[1], p[2])),
+            sdf_func((p[0], p[1] + eps, p[2])) - sdf_func((p[0], p[1] - eps, p[2])),
+            sdf_func((p[0], p[1], p[2] + eps)) - sdf_func((p[0], p[1], p[2] - eps)),
+        ]
+    )
 
     return normalize(normal)

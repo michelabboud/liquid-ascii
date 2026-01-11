@@ -104,6 +104,7 @@ class TestNormalComputation:
 
     def test_sphere_normal_x(self):
         """Normal on +X side of sphere should point +X."""
+
         def sphere_sdf(p):
             return sdf_sphere(p, (0, 0, 0), 1.0)
 
@@ -114,6 +115,7 @@ class TestNormalComputation:
 
     def test_sphere_normal_y(self):
         """Normal on +Y side of sphere should point +Y."""
+
         def sphere_sdf(p):
             return sdf_sphere(p, (0, 0, 0), 1.0)
 

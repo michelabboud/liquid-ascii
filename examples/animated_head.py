@@ -58,9 +58,9 @@ def main():
             frame = raymarcher.render_frame(sdf)
 
             # Clear and draw
-            os.system('clear' if os.name == 'posix' else 'cls')
+            os.system("clear" if os.name == "posix" else "cls")
             print(frame)
-            print(f"\nFPS: {1/dt:.1f} | Blink: {head.state.blink_amount:.2f}")
+            print(f"\nFPS: {1 / dt:.1f} | Blink: {head.state.blink_amount:.2f}")
 
             # Maintain frame rate
             elapsed = time.time() - current_time

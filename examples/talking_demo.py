@@ -97,7 +97,7 @@ async def main():
             frame = raymarcher.render_frame(sdf)
 
             # Display
-            os.system('clear' if os.name == 'posix' else 'cls')
+            os.system("clear" if os.name == "posix" else "cls")
             print(frame)
             print(f"\nTime: {t:.1f}s / {result.duration:.1f}s | Mouth: {shape.mouth_openness:.2f}")
 

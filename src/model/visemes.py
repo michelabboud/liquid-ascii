@@ -15,6 +15,7 @@ class Viseme(Enum):
 
     Based on common viseme groupings used in animation software.
     """
+
     # Silence / rest
     X = "X"  # Neutral rest position
 
@@ -42,12 +43,13 @@ class VisemeShape:
     """
     Parameters defining a mouth shape for a viseme.
     """
+
     mouth_openness: float  # 0 = closed, 1 = wide open
-    mouth_width: float     # 0 = narrow, 1 = wide (smile)
-    lip_pucker: float      # 0 = relaxed, 1 = pursed
-    jaw_offset: float      # Vertical jaw displacement
+    mouth_width: float  # 0 = narrow, 1 = wide (smile)
+    lip_pucker: float  # 0 = relaxed, 1 = pursed
+    jaw_offset: float  # Vertical jaw displacement
     tongue_visible: float  # 0 = hidden, 1 = visible
-    teeth_visible: float   # 0 = hidden, 1 = visible
+    teeth_visible: float  # 0 = hidden, 1 = visible
 
     def lerp_to(self, other: "VisemeShape", t: float) -> "VisemeShape":
         """Interpolate between two viseme shapes."""
@@ -160,7 +162,6 @@ PHONEME_TO_VISEME: dict[str, Viseme] = {
     "sil": Viseme.X,
     "sp": Viseme.X,
     "": Viseme.X,
-
     # Open vowels (A)
     "AA": Viseme.A,  # odd
     "AE": Viseme.A,  # at
@@ -168,29 +169,24 @@ PHONEME_TO_VISEME: dict[str, Viseme] = {
     "AO": Viseme.A,  # ought
     "AW": Viseme.A,  # cow
     "AY": Viseme.A,  # hide
-
     # Smile vowels (E)
     "EH": Viseme.E,  # Ed
     "EY": Viseme.E,  # ate
     "IH": Viseme.E,  # it
     "IY": Viseme.E,  # eat
-
     # Round vowels (O)
     "OW": Viseme.O,  # oat
     "OY": Viseme.O,  # toy
     "UH": Viseme.O,  # hood
     "UW": Viseme.O,  # two
     "W": Viseme.O,
-
     # Closed consonants (B)
     "B": Viseme.B,
     "M": Viseme.B,
     "P": Viseme.B,
-
     # Lip-teeth (F)
     "F": Viseme.F,
     "V": Viseme.F,
-
     # Teeth visible (C)
     "D": Viseme.C,
     "T": Viseme.C,
@@ -202,16 +198,13 @@ PHONEME_TO_VISEME: dict[str, Viseme] = {
     "HH": Viseme.C,
     "S": Viseme.C,
     "Z": Viseme.C,
-
     # Tongue between teeth (D)
     "TH": Viseme.D,
     "DH": Viseme.D,
-
     # Relaxed open (H)
     "L": Viseme.H,
     "R": Viseme.H,
     "ER": Viseme.H,
-
     # Puckered (I)
     "CH": Viseme.I,
     "JH": Viseme.I,
@@ -236,6 +229,7 @@ RHUBARB_TO_VISEME: dict[str, Viseme] = {
 @dataclass
 class VisemeCue:
     """A single viseme timing cue."""
+
     start_time: float
     end_time: float
     viseme: Viseme
@@ -291,11 +285,13 @@ class VisemeController:
         for cue in data.get("mouthCues", []):
             viseme_str = cue.get("value", "X")
             viseme = RHUBARB_TO_VISEME.get(viseme_str, Viseme.X)
-            cues.append(VisemeCue(
-                start_time=cue["start"],
-                end_time=cue["end"],
-                viseme=viseme,
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=cue["start"],
+                    end_time=cue["end"],
+                    viseme=viseme,
+                )
+            )
         self.load_cues(cues)
 
     def get_viseme_at_time(self, t: float) -> Viseme:
@@ -330,7 +326,11 @@ class VisemeController:
             self._transition_progress = min(1.0, self._transition_progress)
 
             # Smooth interpolation
-            t_smooth = self._transition_progress * self._transition_progress * (3 - 2 * self._transition_progress)
+            t_smooth = (
+                self._transition_progress
+                * self._transition_progress
+                * (3 - 2 * self._transition_progress)
+            )
             self.current_shape = self.current_shape.lerp_to(self.target_shape, t_smooth)
 
         return self.current_shape
@@ -404,17 +404,21 @@ def simple_text_to_visemes(
     for word_syllables in syllables:
         for _ in range(word_syllables):
             viseme = viseme_cycle[syllable_idx % len(viseme_cycle)]
-            cues.append(VisemeCue(
-                start_time=current_time,
-                end_time=current_time + time_per_syllable * 0.8,
-                viseme=viseme,
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=current_time,
+                    end_time=current_time + time_per_syllable * 0.8,
+                    viseme=viseme,
+                )
+            )
             # Brief closure between syllables
-            cues.append(VisemeCue(
-                start_time=current_time + time_per_syllable * 0.8,
-                end_time=current_time + time_per_syllable,
-                viseme=Viseme.X,
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=current_time + time_per_syllable * 0.8,
+                    end_time=current_time + time_per_syllable,
+                    viseme=Viseme.X,
+                )
+            )
             current_time += time_per_syllable
             syllable_idx += 1
 

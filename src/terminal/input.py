@@ -13,6 +13,7 @@ from blessed import Terminal
 
 class InputCommand(Enum):
     """Commands that can be triggered by keyboard input."""
+
     # Navigation
     QUIT = auto()
     PAUSE = auto()
@@ -49,6 +50,7 @@ class InputCommand(Enum):
 @dataclass
 class InputEvent:
     """Represents a processed input event."""
+
     command: InputCommand
     value: float | None = None  # For analog controls like FPS adjustment
 
@@ -74,53 +76,54 @@ class InteractiveInputHandler:
         # Key mapping
         self._key_map: dict[str, InputCommand] = {
             # Quit
-            'q': InputCommand.QUIT,
-            'Q': InputCommand.QUIT,
-
+            "q": InputCommand.QUIT,
+            "Q": InputCommand.QUIT,
             # Pause/Help
-            ' ': InputCommand.PAUSE,
-            'h': InputCommand.HELP,
-            'H': InputCommand.HELP,
-            '?': InputCommand.HELP,
-
+            " ": InputCommand.PAUSE,
+            "h": InputCommand.HELP,
+            "H": InputCommand.HELP,
+            "?": InputCommand.HELP,
             # Arrow keys for head movement
-            'KEY_UP': InputCommand.TILT_UP,
-            'KEY_DOWN': InputCommand.TILT_DOWN,
-            'KEY_LEFT': InputCommand.TURN_LEFT,
-            'KEY_RIGHT': InputCommand.TURN_RIGHT,
-
+            "KEY_UP": InputCommand.TILT_UP,
+            "KEY_DOWN": InputCommand.TILT_DOWN,
+            "KEY_LEFT": InputCommand.TURN_LEFT,
+            "KEY_RIGHT": InputCommand.TURN_RIGHT,
             # Q/E for lean
-            'e': InputCommand.LEAN_RIGHT,
-            'E': InputCommand.LEAN_RIGHT,
-
+            "e": InputCommand.LEAN_RIGHT,
+            "E": InputCommand.LEAN_RIGHT,
             # Number keys for expressions
-            '1': InputCommand.EXPRESSION_1,
-            '2': InputCommand.EXPRESSION_2,
-            '3': InputCommand.EXPRESSION_3,
-            '4': InputCommand.EXPRESSION_4,
-            '5': InputCommand.EXPRESSION_5,
-            '6': InputCommand.EXPRESSION_6,
-            '7': InputCommand.EXPRESSION_7,
-            '8': InputCommand.EXPRESSION_8,
-            '9': InputCommand.EXPRESSION_9,
-
+            "1": InputCommand.EXPRESSION_1,
+            "2": InputCommand.EXPRESSION_2,
+            "3": InputCommand.EXPRESSION_3,
+            "4": InputCommand.EXPRESSION_4,
+            "5": InputCommand.EXPRESSION_5,
+            "6": InputCommand.EXPRESSION_6,
+            "7": InputCommand.EXPRESSION_7,
+            "8": InputCommand.EXPRESSION_8,
+            "9": InputCommand.EXPRESSION_9,
             # Visual controls
-            'c': InputCommand.CYCLE_COLOR_SCHEME,
-            'C': InputCommand.CYCLE_COLOR_SCHEME,
-            'r': InputCommand.CYCLE_RAINBOW,
-            'R': InputCommand.CYCLE_RAINBOW,
-
+            "c": InputCommand.CYCLE_COLOR_SCHEME,
+            "C": InputCommand.CYCLE_COLOR_SCHEME,
+            "r": InputCommand.CYCLE_RAINBOW,
+            "R": InputCommand.CYCLE_RAINBOW,
             # FPS adjustment
-            '+': InputCommand.FPS_INCREASE,
-            '=': InputCommand.FPS_INCREASE,  # + without shift
-            '-': InputCommand.FPS_DECREASE,
-            '_': InputCommand.FPS_DECREASE,
+            "+": InputCommand.FPS_INCREASE,
+            "=": InputCommand.FPS_INCREASE,  # + without shift
+            "-": InputCommand.FPS_DECREASE,
+            "_": InputCommand.FPS_DECREASE,
         }
 
         # Expression mapping (for display)
         self._expression_names = [
-            "neutral", "happy", "sad", "angry", "surprised",
-            "confused", "tired", "wink", "thinking"
+            "neutral",
+            "happy",
+            "sad",
+            "angry",
+            "surprised",
+            "confused",
+            "tired",
+            "wink",
+            "thinking",
         ]
 
     def poll_input(self, timeout: float = 0.0) -> InputEvent | None:
@@ -143,13 +146,13 @@ class InteractiveInputHandler:
             return None
 
         # Special handling for 'q' as lean left
-        if key.lower() == 'q' and key == 'q':
+        if key.lower() == "q" and key == "q":
             # Check if user meant lean left or quit
             # For now, lean left requires lowercase 'q', quit is uppercase or ESC
             return InputEvent(InputCommand.LEAN_LEFT)
 
         # Check for ESC key (quit)
-        if key.code == self.term.KEY_ESCAPE or key == '\x1b':
+        if key.code == self.term.KEY_ESCAPE or key == "\x1b":
             return InputEvent(InputCommand.QUIT)
 
         # Map key to command

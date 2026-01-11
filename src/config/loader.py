@@ -106,9 +106,7 @@ class ConfigLoader:
 
         if suffix in [".yaml", ".yml"]:
             if not HAS_YAML:
-                raise ValueError(
-                    "YAML support requires PyYAML: pip install pyyaml"
-                )
+                raise ValueError("YAML support requires PyYAML: pip install pyyaml")
             return ConfigLoader._load_yaml(path)
         elif suffix == ".json":
             return ConfigLoader._load_json(path)
@@ -153,9 +151,7 @@ class ConfigLoader:
 
         if suffix in [".yaml", ".yml"]:
             if not HAS_YAML:
-                raise ValueError(
-                    "YAML support requires PyYAML: pip install pyyaml"
-                )
+                raise ValueError("YAML support requires PyYAML: pip install pyyaml")
             ConfigLoader._save_yaml(config, path)
         elif suffix == ".json":
             ConfigLoader._save_json(config, path)

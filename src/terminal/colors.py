@@ -13,6 +13,7 @@ from enum import Enum
 @dataclass
 class RGB:
     """RGB color value."""
+
     r: int
     g: int
     b: int
@@ -34,10 +35,11 @@ class RGB:
 
 class ColorMode(Enum):
     """Terminal color modes."""
-    NONE = "none"           # No colors
-    ANSI_16 = "16"          # Basic 16 ANSI colors
-    ANSI_256 = "256"        # 256 color palette
-    TRUECOLOR = "truecolor" # 24-bit RGB
+
+    NONE = "none"  # No colors
+    ANSI_16 = "16"  # Basic 16 ANSI colors
+    ANSI_256 = "256"  # 256 color palette
+    TRUECOLOR = "truecolor"  # 24-bit RGB
 
 
 @dataclass
@@ -45,13 +47,14 @@ class ColorScheme:
     """
     Color scheme for ASCII rendering.
     """
+
     name: str
-    base: RGB              # Main surface color
-    highlight: RGB         # Bright areas
-    shadow: RGB            # Dark areas
-    eye_color: RGB         # Eyeball color
-    pupil_color: RGB       # Pupil color
-    mouth_color: RGB       # Inside mouth
+    base: RGB  # Main surface color
+    highlight: RGB  # Bright areas
+    shadow: RGB  # Dark areas
+    eye_color: RGB  # Eyeball color
+    pupil_color: RGB  # Pupil color
+    mouth_color: RGB  # Inside mouth
     background: RGB | None = None
 
     def get_surface_color(self, intensity: float) -> RGB:

@@ -56,7 +56,7 @@ def lerp(a: float, b: float, t: float) -> float:
 
 def ease_in(t: float, power: float = 2.0) -> float:
     """Ease in (slow start)."""
-    return t ** power
+    return t**power
 
 
 def ease_out(t: float, power: float = 2.0) -> float:
@@ -67,7 +67,7 @@ def ease_out(t: float, power: float = 2.0) -> float:
 def ease_in_out(t: float, power: float = 2.0) -> float:
     """Ease in and out (slow start and end)."""
     if t < 0.5:
-        return (2 ** (power - 1)) * (t ** power)
+        return (2 ** (power - 1)) * (t**power)
     else:
         return 1 - ((-2 * t + 2) ** power) / 2
 
@@ -201,6 +201,7 @@ def double_blink_pattern(t: float, interval: float = 5.0) -> float:
 @dataclass
 class AnimationTarget:
     """A single animated value target."""
+
     start_value: float
     end_value: float
     start_time: float
@@ -228,6 +229,7 @@ class AnimationController:
     """
     Manages multiple animated values with smooth transitions.
     """
+
     values: dict[str, float] = field(default_factory=dict)
     targets: dict[str, AnimationTarget] = field(default_factory=dict)
     _start_time: float = field(default_factory=time.time)

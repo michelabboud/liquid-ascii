@@ -4,7 +4,6 @@ Camera system for 3D to 2D projection.
 Handles view transformation and ray generation for raymarching.
 """
 
-
 import numpy as np
 
 from .sdf import Vec3, _to_array, normalize
@@ -107,9 +106,7 @@ class Camera:
         y = v * self.tan_half_fov
 
         # Compute ray direction in world space
-        direction = normalize(
-            self.forward + x * self.right + y * self.true_up
-        )
+        direction = normalize(self.forward + x * self.right + y * self.true_up)
 
         return self.position.copy(), direction
 
@@ -140,7 +137,7 @@ class Camera:
         directions[:, :, 2] = self.forward[2] + xx * self.right[2] + yy * self.true_up[2]
 
         # Normalize directions
-        lengths = np.sqrt(np.sum(directions ** 2, axis=2, keepdims=True))
+        lengths = np.sqrt(np.sum(directions**2, axis=2, keepdims=True))
         directions = directions / lengths
 
         # Origins are all the same (camera position)
@@ -150,10 +147,7 @@ class Camera:
 
 
 def project_point(
-    point: Vec3,
-    camera_pos: Vec3 = (0, 0, -3),
-    k1: float = 30,
-    k2: float = 5
+    point: Vec3, camera_pos: Vec3 = (0, 0, -3), k1: float = 30, k2: float = 5
 ) -> tuple[float, float]:
     """
     Simple perspective projection (donut.c style).

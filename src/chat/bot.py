@@ -158,10 +158,7 @@ class ChatBot:
             return "sad"
 
         # Angry expressions
-        if any(
-            word in text_lower
-            for word in ["angry", "frustrated", "annoyed", "upset", "wrong"]
-        ):
+        if any(word in text_lower for word in ["angry", "frustrated", "annoyed", "upset", "wrong"]):
             return "angry"
 
         # Surprised expressions

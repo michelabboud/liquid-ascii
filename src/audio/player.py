@@ -17,6 +17,7 @@ import numpy as np
 @dataclass
 class PlaybackState:
     """Current state of audio playback."""
+
     is_playing: bool = False
     is_paused: bool = False
     position: float = 0.0  # Current position in seconds
@@ -83,6 +84,7 @@ class AudioPlayer:
         try:
             # Try soundfile first (handles many formats)
             import soundfile as sf
+
             data, sr = sf.read(str(file_path))
             return data, sr
         except Exception:
@@ -115,12 +117,14 @@ class AudioPlayer:
     def _load_wav(self, file_path: Path) -> tuple:
         """Load WAV file."""
         from scipy.io import wavfile
+
         sr, data = wavfile.read(str(file_path))
         return data, sr
 
     def _load_scipy(self, file_path: Path) -> tuple:
         """Load audio using soundfile."""
         import soundfile as sf
+
         data, sr = sf.read(str(file_path))
         return data, sr
 
@@ -288,9 +292,11 @@ class SyncAudioPlayer:
         # Load audio
         try:
             import soundfile as sf
+
             data, sr = sf.read(str(file_path))
         except ImportError:
             from scipy.io import wavfile
+
             sr, data = wavfile.read(str(file_path))
             data = data.astype(np.float32) / 32768.0
 
@@ -314,6 +320,7 @@ class SyncAudioPlayer:
     def stop(self):
         """Stop playback."""
         import sounddevice as sd
+
         sd.stop()
         self._is_playing = False
 

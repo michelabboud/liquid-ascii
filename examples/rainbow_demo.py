@@ -95,9 +95,11 @@ def main():
             colored_frame = render_with_rainbow(frame, rainbow, width, height)
 
             # Display
-            os.system('clear' if os.name == 'posix' else 'cls')
+            os.system("clear" if os.name == "posix" else "cls")
             print(colored_frame)
-            print(f"\nRainbow mode: {modes[current_mode]} | Switch in: {mode_switch_time - mode_timer:.1f}s")
+            print(
+                f"\nRainbow mode: {modes[current_mode]} | Switch in: {mode_switch_time - mode_timer:.1f}s"
+            )
 
             # Maintain frame rate
             elapsed = time.time() - current_time

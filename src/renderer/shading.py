@@ -5,7 +5,6 @@ Maps lighting calculations to appropriate ASCII characters to create
 the illusion of 3D surfaces in text.
 """
 
-
 import numpy as np
 
 from .sdf import Vec3, _to_array, normalize
@@ -66,11 +65,7 @@ class ASCIIShader:
         """Update light direction."""
         self.light_dir = normalize(_to_array(direction))
 
-    def compute_lighting(
-        self,
-        normal: Vec3,
-        view_dir: Vec3 | None = None
-    ) -> float:
+    def compute_lighting(self, normal: Vec3, view_dir: Vec3 | None = None) -> float:
         """
         Compute lighting intensity at a surface point.
 
@@ -99,14 +94,12 @@ class ASCIIShader:
                 # Half vector between light and view
                 half_vec = normalize(self.light_dir + view_dir)
                 n_dot_h = max(0, np.dot(normal, half_vec))
-                intensity += self.specular * (n_dot_h ** self.specular_power)
+                intensity += self.specular * (n_dot_h**self.specular_power)
 
         return min(max(intensity, 0.0), 1.0)
 
     def compute_lighting_batch(
-        self,
-        normals: np.ndarray,
-        view_dirs: np.ndarray | None = None
+        self, normals: np.ndarray, view_dirs: np.ndarray | None = None
     ) -> np.ndarray:
         """
         Vectorized lighting computation for all pixels.
@@ -124,25 +117,21 @@ class ASCIIShader:
         # Diffuse
         n_dot_l = np.sum(normals * self.light_dir, axis=-1)
         diffuse_mask = n_dot_l > 0
-        intensity = np.where(
-            diffuse_mask,
-            intensity + self.diffuse * n_dot_l,
-            intensity
-        )
+        intensity = np.where(diffuse_mask, intensity + self.diffuse * n_dot_l, intensity)
 
         # Specular
         if view_dirs is not None and self.specular > 0:
             # Normalize view directions
-            view_lens = np.sqrt(np.sum(view_dirs ** 2, axis=-1, keepdims=True))
+            view_lens = np.sqrt(np.sum(view_dirs**2, axis=-1, keepdims=True))
             view_dirs_norm = view_dirs / np.maximum(view_lens, 1e-10)
 
             # Half vectors
             half_vecs = self.light_dir + view_dirs_norm
-            half_lens = np.sqrt(np.sum(half_vecs ** 2, axis=-1, keepdims=True))
+            half_lens = np.sqrt(np.sum(half_vecs**2, axis=-1, keepdims=True))
             half_vecs = half_vecs / np.maximum(half_lens, 1e-10)
 
             n_dot_h = np.maximum(0, np.sum(normals * half_vecs, axis=-1))
-            spec_contrib = self.specular * (n_dot_h ** self.specular_power)
+            spec_contrib = self.specular * (n_dot_h**self.specular_power)
             intensity = np.where(diffuse_mask, intensity + spec_contrib, intensity)
 
         return np.clip(intensity, 0.0, 1.0)
@@ -202,7 +191,7 @@ class ColorASCIIShader(ASCIIShader):
         base_color: tuple[int, int, int] = (200, 180, 160),  # Skin tone
         highlight_color: tuple[int, int, int] = (255, 255, 240),
         shadow_color: tuple[int, int, int] = (80, 60, 50),
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize color shader.
@@ -251,12 +240,7 @@ class ColorASCIIShader(ASCIIShader):
         """Generate ANSI escape sequence for true color."""
         return f"\033[38;2;{r};{g};{b}m"
 
-    def render_colored_char(
-        self,
-        char: str,
-        intensity: float,
-        use_truecolor: bool = True
-    ) -> str:
+    def render_colored_char(self, char: str, intensity: float, use_truecolor: bool = True) -> str:
         """
         Render a character with color escape codes.
 

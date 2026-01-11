@@ -207,7 +207,7 @@ def setup_effects_from_args(args, width: int, height: int):
     if effect_config.get("depth_of_field"):
         compositor.enable_depth_of_field(
             focus=effect_config.get("dof_focus", 3.5),
-            strength=effect_config.get("dof_strength", 0.5)
+            strength=effect_config.get("dof_strength", 0.5),
         )
 
     return compositor
@@ -560,6 +560,7 @@ def run_static_mode(
         head.set_expression(expression)
         # Let expression transition complete for static render
         import time
+
         time.sleep(0.1)
         head.update(0.1)
 
@@ -776,6 +777,7 @@ async def run_chat_mode(
                             # Generate viseme cues from word timings
                             if chunk.word_timings:
                                 from .audio import LipSyncGenerator
+
                                 lipsync_gen = LipSyncGenerator()
                                 viseme_cues = lipsync_gen.generate_from_words(
                                     chunk.text, chunk.word_timings
@@ -857,227 +859,148 @@ Examples:
 Characters: default, round, tall, wide, robot, cute, alien, cat, dog, baby, elder, skull
 Color schemes: default, pale, dark, robot, alien, ghost, sunset, ocean, neon, monochrome
 Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
-        """
+        """,
     )
 
+    parser.add_argument("--speak", "-s", type=str, help="Text to speak")
+    parser.add_argument("--tutor", "-t", type=str, help="Path to text/markdown file to read aloud")
     parser.add_argument(
-        "--speak", "-s",
-        type=str,
-        help="Text to speak"
-    )
-    parser.add_argument(
-        "--tutor", "-t",
-        type=str,
-        help="Path to text/markdown file to read aloud"
-    )
-    parser.add_argument(
-        "--character", "-c",
+        "--character",
+        "-c",
         type=str,
         default="default",
-        help="Character preset (default, round, tall, wide, robot, cute, alien, cat, dog, baby, elder, skull)"
+        help="Character preset (default, round, tall, wide, robot, cute, alien, cat, dog, baby, elder, skull)",
     )
     parser.add_argument(
-        "--expression", "-e",
+        "--expression",
+        "-e",
         type=str,
-        help="Facial expression (neutral, happy, sad, angry, surprised, confused, tired, wink, thinking, excited, skeptical)"
+        help="Facial expression (neutral, happy, sad, angry, surprised, confused, tired, wink, thinking, excited, skeptical)",
     )
+    parser.add_argument("--scheme", type=str, default="default", help="Color scheme name")
     parser.add_argument(
-        "--scheme",
+        "--rainbow",
+        "-r",
         type=str,
-        default="default",
-        help="Color scheme name"
+        help="Rainbow mode (horizontal, vertical, radial, diagonal, wave)",
     )
     parser.add_argument(
-        "--rainbow", "-r",
-        type=str,
-        help="Rainbow mode (horizontal, vertical, radial, diagonal, wave)"
-    )
-    parser.add_argument(
-        "--voice", "-v",
+        "--voice",
+        "-v",
         type=str,
         default=None,
-        help="TTS voice name (default: auto-select based on character)"
+        help="TTS voice name (default: auto-select based on character)",
     )
+    parser.add_argument("--fps", type=float, default=15.0, help="Target FPS (default: 15)")
     parser.add_argument(
-        "--fps",
-        type=float,
-        default=15.0,
-        help="Target FPS (default: 15)"
-    )
-    parser.add_argument(
-        "--quality", "-q",
+        "--quality",
+        "-q",
         type=str,
         choices=["low", "medium", "high", "ultra", "auto"],
         default="high",
-        help="Rendering quality (low=16 steps, medium=32, high=50, ultra=80, auto=adaptive) (default: high)"
+        help="Rendering quality (low=16 steps, medium=32, high=50, ultra=80, auto=adaptive) (default: high)",
     )
     parser.add_argument(
-        "--interactive", "-i",
+        "--interactive",
+        "-i",
         action="store_true",
-        help="Enable interactive keyboard controls (arrow keys, expressions, etc.)"
+        help="Enable interactive keyboard controls (arrow keys, expressions, etc.)",
+    )
+    parser.add_argument("--static", action="store_true", help="Render single static frame")
+    parser.add_argument("--list-voices", action="store_true", help="List available TTS voices")
+    parser.add_argument("--list-schemes", action="store_true", help="List available color schemes")
+    parser.add_argument(
+        "--list-expressions", action="store_true", help="List available facial expressions"
     )
     parser.add_argument(
-        "--static",
-        action="store_true",
-        help="Render single static frame"
+        "--list-character-voices", action="store_true", help="List character-to-voice mappings"
     )
-    parser.add_argument(
-        "--list-voices",
-        action="store_true",
-        help="List available TTS voices"
-    )
-    parser.add_argument(
-        "--list-schemes",
-        action="store_true",
-        help="List available color schemes"
-    )
-    parser.add_argument(
-        "--list-expressions",
-        action="store_true",
-        help="List available facial expressions"
-    )
-    parser.add_argument(
-        "--list-character-voices",
-        action="store_true",
-        help="List character-to-voice mappings"
-    )
-    parser.add_argument(
-        "--chat",
-        action="store_true",
-        help="Enable interactive chat mode with LLM"
-    )
+    parser.add_argument("--chat", action="store_true", help="Enable interactive chat mode with LLM")
     parser.add_argument(
         "--llm-backend",
         type=str,
         choices=["ollama", "openai"],
         default="ollama",
-        help="LLM backend to use (default: ollama)"
+        help="LLM backend to use (default: ollama)",
     )
     parser.add_argument(
         "--llm-model",
         type=str,
         default=None,
-        help="LLM model name (default: llama3.2:latest for ollama, gpt-4o-mini for openai)"
+        help="LLM model name (default: llama3.2:latest for ollama, gpt-4o-mini for openai)",
     )
     parser.add_argument(
         "--chat-voice",
         action="store_true",
-        help="Enable voice output in chat mode (AI speaks responses with lip sync)"
+        help="Enable voice output in chat mode (AI speaks responses with lip sync)",
     )
     parser.add_argument(
-        "--list-llm-backends",
-        action="store_true",
-        help="List available LLM backends"
+        "--list-llm-backends", action="store_true", help="List available LLM backends"
     )
 
     # Visual Effects
+    parser.add_argument("--particles", action="store_true", help="Enable particle system effect")
     parser.add_argument(
-        "--particles",
-        action="store_true",
-        help="Enable particle system effect"
+        "--max-particles", type=int, default=50, help="Maximum number of particles (default: 50)"
     )
+    parser.add_argument("--trails", action="store_true", help="Enable motion trail effect")
     parser.add_argument(
-        "--max-particles",
-        type=int,
-        default=50,
-        help="Maximum number of particles (default: 50)"
+        "--trail-length", type=int, default=5, help="Motion trail length in frames (default: 5)"
     )
-    parser.add_argument(
-        "--trails",
-        action="store_true",
-        help="Enable motion trail effect"
-    )
-    parser.add_argument(
-        "--trail-length",
-        type=int,
-        default=5,
-        help="Motion trail length in frames (default: 5)"
-    )
-    parser.add_argument(
-        "--glitch",
-        action="store_true",
-        help="Enable glitch/distortion effect"
-    )
+    parser.add_argument("--glitch", action="store_true", help="Enable glitch/distortion effect")
     parser.add_argument(
         "--glitch-intensity",
         type=float,
         default=0.1,
-        help="Glitch effect intensity 0-1 (default: 0.1)"
+        help="Glitch effect intensity 0-1 (default: 0.1)",
     )
-    parser.add_argument(
-        "--scanlines",
-        action="store_true",
-        help="Enable CRT scanline effect"
-    )
+    parser.add_argument("--scanlines", action="store_true", help="Enable CRT scanline effect")
     parser.add_argument(
         "--scanline-intensity",
         type=float,
         default=0.5,
-        help="Scanline intensity 0-1 (default: 0.5)"
+        help="Scanline intensity 0-1 (default: 0.5)",
     )
     parser.add_argument(
-        "--matrix-rain",
-        action="store_true",
-        help="Enable Matrix-style falling rain effect"
+        "--matrix-rain", action="store_true", help="Enable Matrix-style falling rain effect"
     )
     parser.add_argument(
-        "--matrix-density",
-        type=float,
-        default=0.3,
-        help="Matrix rain density 0-1 (default: 0.3)"
+        "--matrix-density", type=float, default=0.3, help="Matrix rain density 0-1 (default: 0.3)"
     )
     parser.add_argument(
-        "--depth-of-field",
-        action="store_true",
-        help="Enable depth-of-field blur effect"
+        "--depth-of-field", action="store_true", help="Enable depth-of-field blur effect"
     )
     parser.add_argument(
-        "--dof-focus",
-        type=float,
-        default=3.5,
-        help="Depth-of-field focus distance (default: 3.5)"
+        "--dof-focus", type=float, default=3.5, help="Depth-of-field focus distance (default: 3.5)"
     )
     parser.add_argument(
         "--dof-strength",
         type=float,
         default=0.5,
-        help="Depth-of-field blur strength 0-1 (default: 0.5)"
+        help="Depth-of-field blur strength 0-1 (default: 0.5)",
     )
     parser.add_argument(
         "--effect-preset",
         type=str,
         choices=["cyberpunk", "matrix", "retro", "glitchy", "minimal", "showcase"],
-        help="Apply preset effect combination"
+        help="Apply preset effect combination",
     )
     parser.add_argument(
-        "--list-effect-presets",
-        action="store_true",
-        help="List available effect presets"
+        "--list-effect-presets", action="store_true", help="List available effect presets"
     )
 
     # Configuration
     parser.add_argument(
-        "--config",
-        type=str,
-        metavar="PATH",
-        help="Load configuration from file (.yaml/.json)"
+        "--config", type=str, metavar="PATH", help="Load configuration from file (.yaml/.json)"
     )
     parser.add_argument(
-        "--preset",
-        type=str,
-        metavar="NAME",
-        help="Load configuration preset by name"
+        "--preset", type=str, metavar="NAME", help="Load configuration preset by name"
     )
     parser.add_argument(
-        "--save-preset",
-        type=str,
-        metavar="NAME",
-        help="Save current configuration as preset"
+        "--save-preset", type=str, metavar="NAME", help="Save current configuration as preset"
     )
     parser.add_argument(
-        "--list-presets",
-        action="store_true",
-        help="List available configuration presets"
+        "--list-presets", action="store_true", help="List available configuration presets"
     )
 
     args = parser.parse_args()
@@ -1090,6 +1013,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         return
 
     if args.list_voices:
+
         async def list_voices():
             tts = EdgeTTSEngine()
             voices = await tts.list_voices()
@@ -1105,6 +1029,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
 
     if args.list_expressions:
         from .model import EXPRESSIONS
+
         print("Available facial expressions:")
         for name, expr in EXPRESSIONS.items():
             print(f"  - {name:12} (duration: {expr.duration:.1f}s)")
@@ -1112,6 +1037,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
 
     if args.list_character_voices:
         from .model import CharacterHead
+
         print("Character-to-Voice Mappings:")
         print("=" * 70)
         voices = CharacterHead.get_all_character_voices()
@@ -1119,11 +1045,14 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             print(f"  {char:12} → {voice}")
         print()
         print("Note: Voices are auto-selected unless you specify --voice")
-        print("      To override: ./dev.sh run --speak 'text' --character cat --voice en-US-GuyNeural")
+        print(
+            "      To override: ./dev.sh run --speak 'text' --character cat --voice en-US-GuyNeural"
+        )
         return
 
     if args.list_llm_backends:
         from .chat import list_available_backends
+
         print("Checking available LLM backends...")
         print()
         available = list_available_backends()
@@ -1249,9 +1178,9 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 dof_strength=args.dof_strength,
             ),
             chat=ChatConfig(
-                llm_backend=args.llm_backend if hasattr(args, 'llm_backend') else "ollama",
-                llm_model=args.llm_model if hasattr(args, 'llm_model') else None,
-                enable_voice=args.chat_voice if hasattr(args, 'chat_voice') else False,
+                llm_backend=args.llm_backend if hasattr(args, "llm_backend") else "ollama",
+                llm_model=args.llm_model if hasattr(args, "llm_model") else None,
+                enable_voice=args.chat_voice if hasattr(args, "chat_voice") else False,
             ),
         )
         try:
@@ -1270,34 +1199,40 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             quality=args.quality,
         )
     elif args.chat:
-        asyncio.run(run_chat_mode(
-            character=args.character,
-            color_scheme=args.scheme,
-            fps=args.fps,
-            quality=args.quality,
-            llm_backend=args.llm_backend,
-            llm_model=args.llm_model,
-            enable_voice=args.chat_voice,
-            voice=args.voice,
-        ))
+        asyncio.run(
+            run_chat_mode(
+                character=args.character,
+                color_scheme=args.scheme,
+                fps=args.fps,
+                quality=args.quality,
+                llm_backend=args.llm_backend,
+                llm_model=args.llm_model,
+                enable_voice=args.chat_voice,
+                voice=args.voice,
+            )
+        )
     elif args.speak:
-        asyncio.run(run_speak_mode(
-            args.speak,
-            character=args.character,
-            color_scheme=args.scheme,
-            voice=args.voice,
-            expression=args.expression,
-            quality=args.quality,
-        ))
+        asyncio.run(
+            run_speak_mode(
+                args.speak,
+                character=args.character,
+                color_scheme=args.scheme,
+                voice=args.voice,
+                expression=args.expression,
+                quality=args.quality,
+            )
+        )
     elif args.tutor:
-        asyncio.run(run_tutor_mode(
-            args.tutor,
-            character=args.character,
-            color_scheme=args.scheme,
-            voice=args.voice,
-            expression=args.expression,
-            quality=args.quality,
-        ))
+        asyncio.run(
+            run_tutor_mode(
+                args.tutor,
+                character=args.character,
+                color_scheme=args.scheme,
+                voice=args.voice,
+                expression=args.expression,
+                quality=args.quality,
+            )
+        )
     else:
         # Set up effects compositor if any effects are enabled
         display_temp = Display()

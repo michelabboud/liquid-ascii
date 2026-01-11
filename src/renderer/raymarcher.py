@@ -95,10 +95,7 @@ class Raymarcher:
         self._quality_preset = preset
 
     def raymarch_single(
-        self,
-        origin: np.ndarray,
-        direction: np.ndarray,
-        sdf: SDFFunc
+        self, origin: np.ndarray, direction: np.ndarray, sdf: SDFFunc
     ) -> tuple[float | None, np.ndarray | None]:
         """
         March a single ray through the scene.
@@ -161,10 +158,7 @@ class Raymarcher:
 
         # Compute lighting
         view_dirs = -directions  # View direction is opposite of ray direction
-        intensities = self.shader.compute_lighting_batch(
-            self._normal_buffer,
-            view_dirs
-        )
+        intensities = self.shader.compute_lighting_batch(self._normal_buffer, view_dirs)
 
         # Convert to characters
         char_indices = self.shader.intensity_to_char_batch(intensities)
@@ -271,16 +265,13 @@ class AdaptiveRaymarcher(Raymarcher):
         self.relaxation_factor = 1.5  # Speed up distant rays
 
     def raymarch_single(
-        self,
-        origin: np.ndarray,
-        direction: np.ndarray,
-        sdf: SDFFunc
+        self, origin: np.ndarray, direction: np.ndarray, sdf: SDFFunc
     ) -> tuple[float | None, np.ndarray | None]:
         """
         Adaptive raymarching with over-relaxation for speed.
         """
         t = 0.0
-        prev_dist = float('inf')
+        prev_dist = float("inf")
 
         for i in range(self.max_steps):
             point = origin + t * direction

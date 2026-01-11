@@ -15,6 +15,7 @@ class Expression:
 
     All parameters range from -1.0 to 1.0 unless otherwise specified.
     """
+
     name: str
 
     # Eyebrow control
@@ -51,7 +52,6 @@ EXPRESSIONS: dict[str, Expression] = {
         mouth_openness=0.05,
         blink_amount=0.0,
     ),
-
     "happy": Expression(
         name="happy",
         eyebrow_raise=0.3,
@@ -61,7 +61,6 @@ EXPRESSIONS: dict[str, Expression] = {
         eye_squint=0.2,
         duration=0.7,
     ),
-
     "sad": Expression(
         name="sad",
         eyebrow_raise=-0.5,
@@ -72,7 +71,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(0.1, 0.0, 0.0),  # Slight head droop
         duration=1.0,
     ),
-
     "angry": Expression(
         name="angry",
         eyebrow_raise=-0.8,
@@ -83,7 +81,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(-0.1, 0.0, 0.0),  # Slight lean forward
         duration=0.5,
     ),
-
     "surprised": Expression(
         name="surprised",
         eyebrow_raise=0.8,
@@ -94,7 +91,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(-0.15, 0.0, 0.0),  # Head back slightly
         duration=0.3,
     ),
-
     "confused": Expression(
         name="confused",
         eyebrow_raise=0.3,
@@ -107,7 +103,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(0.0, 0.0, 0.2),  # Head tilt
         duration=0.8,
     ),
-
     "tired": Expression(
         name="tired",
         eyebrow_raise=-0.3,
@@ -118,7 +113,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(0.2, 0.0, 0.0),  # Head drooping forward
         duration=1.2,
     ),
-
     "wink": Expression(
         name="wink",
         eyebrow_raise=0.1,
@@ -128,7 +122,6 @@ EXPRESSIONS: dict[str, Expression] = {
         eye_asymmetry=1.0,  # Right eye closed
         duration=0.4,
     ),
-
     "thinking": Expression(
         name="thinking",
         eyebrow_raise=0.2,
@@ -142,7 +135,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(0.0, -0.15, 0.15),  # Head tilted
         duration=0.8,
     ),
-
     "excited": Expression(
         name="excited",
         eyebrow_raise=0.6,
@@ -153,7 +145,6 @@ EXPRESSIONS: dict[str, Expression] = {
         head_tilt=(-0.1, 0.0, 0.0),
         duration=0.5,
     ),
-
     "skeptical": Expression(
         name="skeptical",
         eyebrow_raise=0.5,
@@ -200,11 +191,15 @@ class ExpressionManager:
             duration: Transition duration in seconds (uses expression default if None)
         """
         if expression_name not in EXPRESSIONS:
-            raise ValueError(f"Unknown expression: {expression_name}. Available: {list(EXPRESSIONS.keys())}")
+            raise ValueError(
+                f"Unknown expression: {expression_name}. Available: {list(EXPRESSIONS.keys())}"
+            )
 
         self.target_expression = EXPRESSIONS[expression_name]
         self.transition_start_time = time.time()
-        self.transition_duration = duration if duration is not None else self.target_expression.duration
+        self.transition_duration = (
+            duration if duration is not None else self.target_expression.duration
+        )
         self.is_transitioning = True
 
     def set_custom_expression(self, expression: Expression, duration: float = 0.5):

@@ -64,9 +64,7 @@ class OllamaBackend(LLMBackend):
     Requires Ollama to be installed and running.
     """
 
-    def __init__(
-        self, model: str = "llama3.2:latest", base_url: str = "http://localhost:11434"
-    ):
+    def __init__(self, model: str = "llama3.2:latest", base_url: str = "http://localhost:11434"):
         """
         Initialize Ollama backend.
 
@@ -93,7 +91,9 @@ class OllamaBackend(LLMBackend):
 
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=60)) as response:
+                async with session.post(
+                    url, json=payload, timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
                     if response.status == 200:
                         data = await response.json()
                         return data["message"]["content"]
@@ -120,7 +120,9 @@ class OllamaBackend(LLMBackend):
 
         async with aiohttp.ClientSession() as session:
             try:
-                async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=120)) as response:
+                async with session.post(
+                    url, json=payload, timeout=aiohttp.ClientTimeout(total=120)
+                ) as response:
                     if response.status != 200:
                         error_text = await response.text()
                         raise Exception(f"Ollama API error: {response.status} - {error_text}")
@@ -217,9 +219,12 @@ class OpenAIBackend(LLMBackend):
             "stream": True,
         }
 
-        async with aiohttp.ClientSession() as session, session.post(
-            url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=120)
-        ) as response:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.post(
+                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=120)
+            ) as response,
+        ):
             if response.status != 200:
                 error_text = await response.text()
                 raise Exception(f"OpenAI API error: {response.status} - {error_text}")

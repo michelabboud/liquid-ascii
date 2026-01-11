@@ -64,6 +64,7 @@ class Display:
         """Initialize blessed terminal."""
         if self._term is None:
             from blessed import Terminal
+
             self._term = Terminal()
 
     @property
@@ -152,7 +153,7 @@ class Display:
         # Status line
         if status_text:
             output += self._term.move_xy(0, self._term.height - 1)
-            output += status_text[:self._term.width]
+            output += status_text[: self._term.width]
             output += self._term.clear_eol
 
         print(output, end="", flush=True)

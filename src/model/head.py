@@ -28,6 +28,7 @@ class HeadState:
     """
     Current state of the animated head.
     """
+
     # Mouth animation
     mouth_openness: float = 0.05
     mouth_width: float = 0.5
@@ -35,12 +36,12 @@ class HeadState:
 
     # Eye animation
     blink_amount: float = 0.0  # 0 = open, 1 = closed
-    eye_look_x: float = 0.0   # -1 = left, 1 = right
-    eye_look_y: float = 0.0   # -1 = down, 1 = up
+    eye_look_x: float = 0.0  # -1 = left, 1 = right
+    eye_look_y: float = 0.0  # -1 = down, 1 = up
 
     # Expression modifiers
-    eyebrow_raise: float = 0.0    # -1 = frown, 1 = raised
-    smile_amount: float = 0.0      # 0 = neutral, 1 = smiling
+    eyebrow_raise: float = 0.0  # -1 = frown, 1 = raised
+    smile_amount: float = 0.0  # 0 = neutral, 1 = smiling
 
     # Head orientation
     head_tilt_x: float = 0.0  # nod
@@ -56,6 +57,7 @@ class HeadGeometry:
     """
     Geometric parameters for head shape.
     """
+
     # Main head
     head_radii: tuple[float, float, float] = (1.0, 1.3, 1.0)
 
@@ -303,12 +305,12 @@ class Head:
             eyeball_l_pos = (
                 -g.eye_separation + eye_look_offset_x,
                 g.eye_height + eye_look_offset_y,
-                g.eye_depth + 0.05
+                g.eye_depth + 0.05,
             )
             eyeball_r_pos = (
                 g.eye_separation + eye_look_offset_x,
                 g.eye_height + eye_look_offset_y,
-                g.eye_depth + 0.05
+                g.eye_depth + 0.05,
             )
 
             if eyeball_scale > 0.1:  # Only render if eye is open enough
@@ -319,11 +321,7 @@ class Head:
 
             # === Mouth cavity (smooth subtraction) ===
             mouth_pos = (0, g.mouth_y, g.mouth_depth)
-            mouth_radii = (
-                mouth_width * mouth_pucker_effect,
-                mouth_height,
-                0.15
-            )
+            mouth_radii = (mouth_width * mouth_pucker_effect, mouth_height, 0.15)
             mouth = sdf_ellipsoid(p, mouth_pos, mouth_radii)
             result = sdf_smooth_subtraction(mouth, result, g.mouth_smooth)
 
@@ -350,16 +348,20 @@ class Head:
         eye_look_offset_x = s.eye_look_x * 0.03
         eye_look_offset_y = s.eye_look_y * 0.03
 
-        pupil_l_pos = np.array([
-            -g.eye_separation + eye_look_offset_x,
-            g.eye_height + eye_look_offset_y,
-            g.eye_depth + 0.1
-        ])
-        pupil_r_pos = np.array([
-            g.eye_separation + eye_look_offset_x,
-            g.eye_height + eye_look_offset_y,
-            g.eye_depth + 0.1
-        ])
+        pupil_l_pos = np.array(
+            [
+                -g.eye_separation + eye_look_offset_x,
+                g.eye_height + eye_look_offset_y,
+                g.eye_depth + 0.1,
+            ]
+        )
+        pupil_r_pos = np.array(
+            [
+                g.eye_separation + eye_look_offset_x,
+                g.eye_height + eye_look_offset_y,
+                g.eye_depth + 0.1,
+            ]
+        )
 
         def sdf_with_pupils(point: Vec3) -> tuple[float, bool]:
             p = _to_array(point)
@@ -382,11 +384,7 @@ class CharacterHead(Head):
     Extended head with character-specific features and presets.
     """
 
-    def __init__(
-        self,
-        character_name: str = "default",
-        **kwargs
-    ):
+    def __init__(self, character_name: str = "default", **kwargs):
         """
         Initialize character head.
 

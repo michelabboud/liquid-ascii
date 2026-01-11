@@ -58,7 +58,7 @@ def benchmark_quality_level(quality: QualityLevel, num_frames: int = 10) -> dict
         elapsed = end - start
         times.append(elapsed)
 
-        print(f"  Frame {i+1}/{num_frames}: {elapsed*1000:.1f}ms", end="\r")
+        print(f"  Frame {i + 1}/{num_frames}: {elapsed * 1000:.1f}ms", end="\r")
 
     print()  # New line after progress
 
@@ -131,7 +131,7 @@ def run_benchmark_suite():
         speedup = high_time / r["avg_time_ms"]
         print(
             f"{r['quality']:<10} {speedup:>5.2f}x "
-            f"({r['avg_time_ms']/high_time*100:>5.1f}% time)"
+            f"({r['avg_time_ms'] / high_time * 100:>5.1f}% time)"
         )
 
     # Recommendations

@@ -18,6 +18,7 @@ from pathlib import Path
 @dataclass
 class TTSResult:
     """Result from TTS synthesis."""
+
     audio_path: Path
     duration: float  # Estimated duration in seconds
     text: str
@@ -27,6 +28,7 @@ class TTSResult:
 @dataclass
 class Voice:
     """Voice configuration."""
+
     name: str
     short_name: str
     gender: str
@@ -135,9 +137,7 @@ class EdgeTTSEngine(TTSEngine):
         )
 
     async def synthesize_with_timestamps(
-        self,
-        text: str,
-        output_path: Path | None = None
+        self, text: str, output_path: Path | None = None
     ) -> tuple[TTSResult, list[dict]]:
         """
         Synthesize speech and get word timestamps.
@@ -165,11 +165,13 @@ class EdgeTTSEngine(TTSEngine):
                 if chunk["type"] == "audio":
                     f.write(chunk["data"])
                 elif chunk["type"] == "WordBoundary":
-                    word_timings.append({
-                        "text": chunk["text"],
-                        "offset": chunk["offset"] / 10_000_000,  # Convert to seconds
-                        "duration": chunk["duration"] / 10_000_000,
-                    })
+                    word_timings.append(
+                        {
+                            "text": chunk["text"],
+                            "offset": chunk["offset"] / 10_000_000,  # Convert to seconds
+                            "duration": chunk["duration"] / 10_000_000,
+                        }
+                    )
 
         # Calculate total duration from word timings
         if word_timings:
@@ -216,12 +218,14 @@ class EdgeTTSEngine(TTSEngine):
         voices = []
 
         for v in voices_list:
-            voices.append(Voice(
-                name=v["FriendlyName"],
-                short_name=v["ShortName"],
-                gender=v["Gender"],
-                locale=v["Locale"],
-            ))
+            voices.append(
+                Voice(
+                    name=v["FriendlyName"],
+                    short_name=v["ShortName"],
+                    gender=v["Gender"],
+                    locale=v["Locale"],
+                )
+            )
 
         return voices
 
@@ -240,6 +244,7 @@ class EdgeTTSEngine(TTSEngine):
     def cleanup(self):
         """Clean up temporary files."""
         import shutil
+
         if os.path.exists(self._temp_dir):
             shutil.rmtree(self._temp_dir)
 
@@ -276,9 +281,7 @@ class SyncEdgeTTSEngine:
         return run_async(self._engine.synthesize(text, output_path))
 
     def synthesize_with_timestamps(
-        self,
-        text: str,
-        output_path: Path | None = None
+        self, text: str, output_path: Path | None = None
     ) -> tuple[TTSResult, list[dict]]:
         """Synthesize speech with timestamps synchronously."""
         return run_async(self._engine.synthesize_with_timestamps(text, output_path))

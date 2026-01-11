@@ -155,11 +155,13 @@ class LipSyncGenerator:
             viseme_str = cue.get("value", "X")
             viseme = RHUBARB_TO_VISEME.get(viseme_str, Viseme.X)
 
-            cues.append(VisemeCue(
-                start_time=float(cue["start"]),
-                end_time=float(cue["end"]),
-                viseme=viseme,
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=float(cue["start"]),
+                    end_time=float(cue["end"]),
+                    viseme=viseme,
+                )
+            )
 
         return cues
 
@@ -167,6 +169,7 @@ class LipSyncGenerator:
         """Get duration of an audio file."""
         try:
             import soundfile as sf
+
             info = sf.info(str(audio_path))
             return info.duration
         except Exception:
@@ -176,10 +179,14 @@ class LipSyncGenerator:
         try:
             result = subprocess.run(
                 [
-                    "ffprobe", "-v", "error",
-                    "-show_entries", "format=duration",
-                    "-of", "default=noprint_wrappers=1:nokey=1",
-                    str(audio_path)
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    str(audio_path),
                 ],
                 capture_output=True,
                 timeout=10,
@@ -198,11 +205,13 @@ class LipSyncGenerator:
         idx = 0
 
         while time < duration:
-            cues.append(VisemeCue(
-                start_time=time,
-                end_time=min(time + syllable_duration, duration),
-                viseme=viseme_cycle[idx % len(viseme_cycle)],
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=time,
+                    end_time=min(time + syllable_duration, duration),
+                    viseme=viseme_cycle[idx % len(viseme_cycle)],
+                )
+            )
             time += syllable_duration
             idx += 1
 
@@ -277,13 +286,23 @@ class LipSyncGenerator:
 
         # Map first character to viseme for variety
         char_to_viseme = {
-            "a": Viseme.A, "e": Viseme.E, "i": Viseme.E,
-            "o": Viseme.O, "u": Viseme.O,
-            "m": Viseme.B, "b": Viseme.B, "p": Viseme.B,
-            "f": Viseme.F, "v": Viseme.F,
-            "t": Viseme.C, "d": Viseme.C, "n": Viseme.C,
-            "s": Viseme.C, "z": Viseme.C,
-            "l": Viseme.H, "r": Viseme.H,
+            "a": Viseme.A,
+            "e": Viseme.E,
+            "i": Viseme.E,
+            "o": Viseme.O,
+            "u": Viseme.O,
+            "m": Viseme.B,
+            "b": Viseme.B,
+            "p": Viseme.B,
+            "f": Viseme.F,
+            "v": Viseme.F,
+            "t": Viseme.C,
+            "d": Viseme.C,
+            "n": Viseme.C,
+            "s": Viseme.C,
+            "z": Viseme.C,
+            "l": Viseme.H,
+            "r": Viseme.H,
             "w": Viseme.O,
         }
 
@@ -293,18 +312,22 @@ class LipSyncGenerator:
             char = word[char_idx].lower()
             viseme = char_to_viseme.get(char, Viseme.A)
 
-            cues.append(VisemeCue(
-                start_time=current_time,
-                end_time=current_time + time_per_syllable * 0.8,
-                viseme=viseme,
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=current_time,
+                    end_time=current_time + time_per_syllable * 0.8,
+                    viseme=viseme,
+                )
+            )
 
             # Brief closure between syllables
-            cues.append(VisemeCue(
-                start_time=current_time + time_per_syllable * 0.8,
-                end_time=current_time + time_per_syllable,
-                viseme=Viseme.X,
-            ))
+            cues.append(
+                VisemeCue(
+                    start_time=current_time + time_per_syllable * 0.8,
+                    end_time=current_time + time_per_syllable,
+                    viseme=Viseme.X,
+                )
+            )
 
             current_time += time_per_syllable
 

@@ -29,8 +29,8 @@ def main():
     # Create a simple static head SDF
     head_sdf = create_simple_head_sdf(
         mouth_openness=0.3,  # Slightly open mouth
-        blink=0.0,          # Eyes open
-        time=0.0,           # No animation offset
+        blink=0.0,  # Eyes open
+        time=0.0,  # No animation offset
     )
 
     # Render frame

@@ -15,6 +15,7 @@ from pathlib import Path
 @dataclass
 class TutorSegment:
     """A segment of text to be spoken with optional metadata."""
+
     text: str
     segment_type: str  # "heading", "paragraph", "code", "list_item", "emphasis"
     pause_after: float = 0.5  # Pause duration after segment
@@ -53,12 +54,14 @@ class MarkdownParser:
                 text = line.lstrip("#").strip()
                 # Remove markdown links from headings
                 text = self._clean_markdown(text)
-                segments.append(TutorSegment(
-                    text=text,
-                    segment_type="heading",
-                    pause_after=1.0 if level <= 2 else 0.7,
-                    voice_style="emphasis",
-                ))
+                segments.append(
+                    TutorSegment(
+                        text=text,
+                        segment_type="heading",
+                        pause_after=1.0 if level <= 2 else 0.7,
+                        voice_style="emphasis",
+                    )
+                )
 
             # Code blocks
             elif line.startswith("```"):
@@ -73,33 +76,39 @@ class MarkdownParser:
                     code_text = "\n".join(code_lines)
                     # Summarize code rather than reading it verbatim
                     summary = self._summarize_code(code_text, lang)
-                    segments.append(TutorSegment(
-                        text=summary,
-                        segment_type="code",
-                        pause_after=0.8,
-                        voice_style="code",
-                    ))
+                    segments.append(
+                        TutorSegment(
+                            text=summary,
+                            segment_type="code",
+                            pause_after=0.8,
+                            voice_style="code",
+                        )
+                    )
 
             # Lists
             elif line.startswith(("-", "*", "+")) or re.match(r"^\d+\.", line):
                 text = re.sub(r"^[-*+]|\d+\.\s*", "", line).strip()
                 text = self._clean_markdown(text)
-                segments.append(TutorSegment(
-                    text=text,
-                    segment_type="list_item",
-                    pause_after=0.4,
-                ))
+                segments.append(
+                    TutorSegment(
+                        text=text,
+                        segment_type="list_item",
+                        pause_after=0.4,
+                    )
+                )
 
             # Blockquotes
             elif line.startswith(">"):
                 text = line.lstrip(">").strip()
                 text = self._clean_markdown(text)
-                segments.append(TutorSegment(
-                    text=f"Quote: {text}",
-                    segment_type="emphasis",
-                    pause_after=0.6,
-                    voice_style="emphasis",
-                ))
+                segments.append(
+                    TutorSegment(
+                        text=f"Quote: {text}",
+                        segment_type="emphasis",
+                        pause_after=0.6,
+                        voice_style="emphasis",
+                    )
+                )
 
             # Regular paragraphs
             else:
@@ -115,11 +124,13 @@ class MarkdownParser:
                 text = self._clean_markdown(text)
 
                 if text:
-                    segments.append(TutorSegment(
-                        text=text,
-                        segment_type="paragraph",
-                        pause_after=0.5,
-                    ))
+                    segments.append(
+                        TutorSegment(
+                            text=text,
+                            segment_type="paragraph",
+                            pause_after=0.5,
+                        )
+                    )
 
             i += 1
 
@@ -129,13 +140,13 @@ class MarkdownParser:
         """Check if line starts a special block."""
         line = line.strip()
         return (
-            line.startswith("#") or
-            line.startswith("```") or
-            line.startswith("-") or
-            line.startswith("*") or
-            line.startswith("+") or
-            line.startswith(">") or
-            bool(re.match(r"^\d+\.", line))
+            line.startswith("#")
+            or line.startswith("```")
+            or line.startswith("-")
+            or line.startswith("*")
+            or line.startswith("+")
+            or line.startswith(">")
+            or bool(re.match(r"^\d+\.", line))
         )
 
     def _clean_markdown(self, text: str) -> str:
@@ -223,7 +234,8 @@ class TextTutor:
             paragraphs = content.split("\n\n")
             self._segments = [
                 TutorSegment(text=p.strip(), segment_type="paragraph")
-                for p in paragraphs if p.strip()
+                for p in paragraphs
+                if p.strip()
             ]
 
         self._current_segment_idx = 0
@@ -246,7 +258,8 @@ class TextTutor:
             paragraphs = text.split("\n\n")
             self._segments = [
                 TutorSegment(text=p.strip(), segment_type="paragraph")
-                for p in paragraphs if p.strip()
+                for p in paragraphs
+                if p.strip()
             ]
 
         self._current_segment_idx = 0

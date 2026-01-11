@@ -22,22 +22,22 @@ async def main():
 
     # Group by locale
     locales = {
-        'en-US': 'English (United States)',
-        'en-GB': 'English (United Kingdom)',
-        'en-AU': 'English (Australia)',
-        'en-CA': 'English (Canada)',
-        'en-IN': 'English (India)',
-        'en-IE': 'English (Ireland)',
-        'en-NZ': 'English (New Zealand)',
-        'en-ZA': 'English (South Africa)',
-        'en-SG': 'English (Singapore)',
-        'en-HK': 'English (Hong Kong)',
-        'en-PH': 'English (Philippines)',
+        "en-US": "English (United States)",
+        "en-GB": "English (United Kingdom)",
+        "en-AU": "English (Australia)",
+        "en-CA": "English (Canada)",
+        "en-IN": "English (India)",
+        "en-IE": "English (Ireland)",
+        "en-NZ": "English (New Zealand)",
+        "en-ZA": "English (South Africa)",
+        "en-SG": "English (Singapore)",
+        "en-HK": "English (Hong Kong)",
+        "en-PH": "English (Philippines)",
     }
 
     for locale, description in locales.items():
         # Filter voices for this locale
-        locale_voices = [v for v in voices if v['Locale'] == locale]
+        locale_voices = [v for v in voices if v["Locale"] == locale]
 
         if not locale_voices:
             continue
@@ -45,10 +45,10 @@ async def main():
         print(f"\n{description} ({locale})")
         print("-" * 80)
 
-        for voice in sorted(locale_voices, key=lambda x: (x['Gender'], x['ShortName'])):
-            gender = voice['Gender']
-            short_name = voice['ShortName']
-            friendly_name = voice.get('FriendlyName', short_name)
+        for voice in sorted(locale_voices, key=lambda x: (x["Gender"], x["ShortName"])):
+            gender = voice["Gender"]
+            short_name = voice["ShortName"]
+            friendly_name = voice.get("FriendlyName", short_name)
 
             gender_icon = "♂" if gender == "Male" else "♀"
 
@@ -57,14 +57,14 @@ async def main():
     print("\n" + "=" * 80)
     print("\n💡 USAGE EXAMPLES:\n")
     print("  # Use default voice (Aria - US Female)")
-    print("  ./dev.sh run --speak \"Hello world\"")
+    print('  ./dev.sh run --speak "Hello world"')
     print()
     print("  # Use specific voice")
-    print("  ./dev.sh run --speak \"Hello\" --voice en-GB-RyanNeural")
+    print('  ./dev.sh run --speak "Hello" --voice en-GB-RyanNeural')
     print()
     print("  # Try different voices")
-    print("  ./dev.sh run --speak \"G'day mate\" --voice en-AU-NatashaNeural")
-    print("  ./dev.sh run --speak \"Hello there\" --voice en-GB-SoniaNeural")
+    print('  ./dev.sh run --speak "G\'day mate" --voice en-AU-NatashaNeural')
+    print('  ./dev.sh run --speak "Hello there" --voice en-GB-SoniaNeural')
     print()
 
     # Show recommended voices
@@ -85,7 +85,9 @@ async def main():
         print(f"  • {voice:30} - {desc:15} - {notes}")
 
     print("\n" + "=" * 80)
-    print(f"\n✓ Found {len([v for v in voices if v['Locale'].startswith('en-')])} English voices total\n")
+    print(
+        f"\n✓ Found {len([v for v in voices if v['Locale'].startswith('en-')])} English voices total\n"
+    )
 
 
 if __name__ == "__main__":

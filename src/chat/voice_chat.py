@@ -32,11 +32,21 @@ class SentenceChunker:
         """Initialize sentence chunker."""
         self.buffer = []
         # Sentence boundaries (. ! ? followed by space or end)
-        self.sentence_pattern = re.compile(r'([.!?]+)(\s+|$)')
+        self.sentence_pattern = re.compile(r"([.!?]+)(\s+|$)")
         # Abbreviations that shouldn't end sentences
         self.abbreviations = {
-            'mr.', 'mrs.', 'ms.', 'dr.', 'prof.', 'sr.', 'jr.',
-            'etc.', 'e.g.', 'i.e.', 'vs.', 'ph.d.',
+            "mr.",
+            "mrs.",
+            "ms.",
+            "dr.",
+            "prof.",
+            "sr.",
+            "jr.",
+            "etc.",
+            "e.g.",
+            "i.e.",
+            "vs.",
+            "ph.d.",
         }
 
     def add_token(self, token: str) -> str | None:
@@ -50,7 +60,7 @@ class SentenceChunker:
             Complete sentence if boundary detected, None otherwise
         """
         self.buffer.append(token)
-        current_text = ''.join(self.buffer)
+        current_text = "".join(self.buffer)
 
         # Check for sentence boundary
         match = self.sentence_pattern.search(current_text)
@@ -80,7 +90,7 @@ class SentenceChunker:
             Remaining text in buffer
         """
         if self.buffer:
-            text = ''.join(self.buffer).strip()
+            text = "".join(self.buffer).strip()
             self.buffer = []
             return text if text else None
         return None
@@ -131,13 +141,13 @@ class VoiceChatController:
             if sentence:
                 # Synthesize sentence
                 speech_chunk = await self._synthesize_sentence(sentence)
-                yield '', speech_chunk
+                yield "", speech_chunk
 
         # Flush any remaining text
         remaining = chunker.flush()
         if remaining:
             speech_chunk = await self._synthesize_sentence(remaining)
-            yield '', speech_chunk
+            yield "", speech_chunk
 
     async def _synthesize_sentence(self, text: str) -> SpeechChunk:
         """
@@ -150,16 +160,14 @@ class VoiceChatController:
             SpeechChunk with audio file and timing data
         """
         # Create temporary file for audio
-        temp_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+        temp_file = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
         temp_file.close()
         self.temp_files.append(temp_file.name)
 
         # Synthesize with TTS
         result = await self.tts_engine.synthesize(text, temp_file.name)
 
-        chunk = SpeechChunk(
-            text=text, audio_file=temp_file.name, word_timings=result.word_timings
-        )
+        chunk = SpeechChunk(text=text, audio_file=temp_file.name, word_timings=result.word_timings)
 
         return chunk
 
@@ -199,9 +207,7 @@ async def stream_with_voice(
             yield token
 
     # Process with voice
-    async for token, speech_chunk in voice_controller.process_streaming_response(
-        token_stream()
-    ):
+    async for token, speech_chunk in voice_controller.process_streaming_response(token_stream()):
         # Get current expression from chat session
         expression = chat_session.get_current_expression()
         yield token, expression, speech_chunk
@@ -221,14 +227,14 @@ def chunk_text_for_tts(text: str, max_length: int = 200) -> list[str]:
         List of text chunks
     """
     # Split on sentence boundaries
-    sentences = re.split(r'([.!?]+\s+)', text)
+    sentences = re.split(r"([.!?]+\s+)", text)
 
     chunks = []
-    current_chunk = ''
+    current_chunk = ""
 
     for i in range(0, len(sentences), 2):
         sentence = sentences[i]
-        punctuation = sentences[i + 1] if i + 1 < len(sentences) else ''
+        punctuation = sentences[i + 1] if i + 1 < len(sentences) else ""
 
         sentence_with_punct = sentence + punctuation
 
