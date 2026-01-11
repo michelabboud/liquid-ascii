@@ -44,14 +44,6 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Speech",
     "Topic :: Terminals",
 ]
-
-[project.urls]
-Homepage = "https://github.com/anthropics/liquid-ascii"
-Documentation = "https://github.com/anthropics/liquid-ascii/blob/main/README.md"
-Repository = "https://github.com/anthropics/liquid-ascii"
-Issues = "https://github.com/anthropics/liquid-ascii/issues"
-Changelog = "https://github.com/anthropics/liquid-ascii/blob/main/CHANGELOG.md"
-
 dependencies = [
     "blessed>=1.25.0",
     "numpy>=2.0.0",
@@ -61,6 +53,13 @@ dependencies = [
     "aiohttp>=3.9.0",
     "requests>=2.31.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/anthropics/liquid-ascii"
+Documentation = "https://github.com/anthropics/liquid-ascii/blob/main/README.md"
+Repository = "https://github.com/anthropics/liquid-ascii"
+Issues = "https://github.com/anthropics/liquid-ascii/issues"
+Changelog = "https://github.com/anthropics/liquid-ascii/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
