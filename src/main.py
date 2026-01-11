@@ -103,6 +103,64 @@ EFFECT_PRESETS = {
 }
 
 
+def calculate_optimal_resolution(
+    terminal_width: int,
+    terminal_height: int,
+    margin: int = 2,
+    target_ratio: float = 2.0,
+    max_width: int = 200,
+    max_height: int = 100,
+    min_width: int = 40,
+    min_height: int = 20,
+) -> tuple[int, int]:
+    """
+    Calculate optimal render resolution based on terminal size.
+
+    ASCII characters are typically taller than they are wide (roughly 2:1 ratio),
+    so we aim for width:height ratio of ~2:1 for proper proportions.
+
+    Args:
+        terminal_width: Terminal width in columns
+        terminal_height: Terminal height in lines
+        margin: Margin to leave on edges (characters)
+        target_ratio: Target width:height ratio (default 2.0 for ASCII)
+        max_width: Maximum render width
+        max_height: Maximum render height
+        min_width: Minimum render width
+        min_height: Minimum render height
+
+    Returns:
+        (width, height) tuple for rendering
+    """
+    # Apply margins
+    usable_width = max(terminal_width - margin * 2, min_width)
+    usable_height = max(terminal_height - margin * 2, min_height)
+
+    # Calculate based on height constraint (usually the limiting factor)
+    # If we use full height, how much width do we need?
+    width_from_height = int(usable_height * target_ratio)
+
+    # Calculate based on width constraint
+    # If we use full width, how much height do we need?
+    height_from_width = int(usable_width / target_ratio)
+
+    # Choose the limiting dimension
+    if width_from_height <= usable_width:
+        # Height is the limiting factor
+        width = width_from_height
+        height = usable_height
+    else:
+        # Width is the limiting factor
+        width = usable_width
+        height = height_from_width
+
+    # Apply min/max constraints
+    width = max(min_width, min(width, max_width))
+    height = max(min_height, min(height, max_height))
+
+    return width, height
+
+
 def create_head_renderer(
     width: int = 80,
     height: int = 40,
@@ -246,11 +304,10 @@ def run_demo_mode(
     )
 
     display = Display(target_fps=fps)
-    width, height = display.get_size()
+    terminal_width, terminal_height = display.get_size()
 
-    # Limit size for performance (2x larger for better visibility)
-    width = min(width, 200)
-    height = min(height, 100)
+    # Calculate optimal resolution based on terminal size
+    width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
     head, raymarcher = create_head_renderer(width, height, character, quality)
 
@@ -380,9 +437,10 @@ async def run_speak_mode(
     """
 
     display = Display(target_fps=30.0)
-    width, height = display.get_size()
-    width = min(width, 200)
-    height = min(height, 100)
+    terminal_width, terminal_height = display.get_size()
+
+    # Calculate optimal resolution based on terminal size
+    width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
     head, raymarcher = create_head_renderer(width, height, character, quality)
 
@@ -464,9 +522,10 @@ async def run_tutor_mode(
         quality: Rendering quality
     """
     display = Display(target_fps=30.0)
-    width, height = display.get_size()
-    width = min(width, 200)
-    height = min(height, 100)
+    terminal_width, terminal_height = display.get_size()
+
+    # Calculate optimal resolution based on terminal size
+    width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
     head, raymarcher = create_head_renderer(width, height, character, quality)
 
@@ -560,9 +619,16 @@ def run_static_mode(
     """
     Render a single static frame with feature-based coloring.
     """
+    from blessed import Terminal
     from .terminal.colors import PRESET_SCHEMES
 
-    head, raymarcher = create_head_renderer(100, 60, character, quality, ramp)  # 100x60 resolution
+    # Get terminal size and calculate optimal resolution
+    term = Terminal()
+    terminal_width = term.width or 80
+    terminal_height = term.height or 40
+    width, height = calculate_optimal_resolution(terminal_width, terminal_height)
+
+    head, raymarcher = create_head_renderer(width, height, character, quality, ramp)
     color_scheme = PRESET_SCHEMES[color_scheme_name]
 
     # Set initial expression if specified
@@ -641,14 +707,18 @@ async def run_chat_mode(
 
     # Create display and head
     display = Display(target_fps=fps)
-    width, height = display.get_size()
+    terminal_width, terminal_height = display.get_size()
 
     # Reserve bottom lines for chat UI
     chat_ui_lines = 5
-    render_height = min(height - chat_ui_lines, 50)
-    render_width = min(width, 100)
+    available_height = terminal_height - chat_ui_lines
 
-    head, raymarcher = create_head_renderer(render_width, render_height, character, quality)
+    # Calculate optimal resolution with reduced height for chat UI
+    width, height = calculate_optimal_resolution(
+        terminal_width, available_height, margin=2
+    )
+
+    head, raymarcher = create_head_renderer(width, height, character, quality)
     head.set_expression("neutral")
     display.set_color_scheme(color_scheme)
 
@@ -1300,9 +1370,10 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
     else:
         # Set up effects compositor if any effects are enabled
         display_temp = Display()
-        width, height = display_temp.get_size()
-        width = min(width, 100)
-        height = min(height, 50)
+        terminal_width, terminal_height = display_temp.get_size()
+
+        # Calculate optimal resolution for effects
+        width, height = calculate_optimal_resolution(terminal_width, terminal_height)
         compositor = setup_effects_from_args(args, width, height)
 
         run_demo_mode(
