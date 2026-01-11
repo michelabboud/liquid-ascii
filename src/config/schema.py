@@ -3,8 +3,8 @@
 Defines the structure of configuration files using dataclasses.
 """
 
-from dataclasses import dataclass, field, asdict
-from typing import Optional, Dict, Any
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -25,12 +25,12 @@ class EffectsConfig:
     dof_focus: float = 3.5
     dof_strength: float = 0.5
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "EffectsConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "EffectsConfig":
         """Create from dictionary."""
         # Filter out unknown keys
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
@@ -45,14 +45,14 @@ class RenderConfig:
     quality: str = "high"
     fps: float = 15.0
     color_scheme: str = "default"
-    rainbow_mode: Optional[str] = None
+    rainbow_mode: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RenderConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "RenderConfig":
         """Create from dictionary."""
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in valid_keys}
@@ -64,15 +64,15 @@ class CharacterConfig:
     """Character configuration."""
 
     character: str = "default"
-    expression: Optional[str] = None
-    voice: Optional[str] = None
+    expression: str | None = None
+    voice: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "CharacterConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "CharacterConfig":
         """Create from dictionary."""
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in valid_keys}
@@ -84,15 +84,15 @@ class ChatConfig:
     """Chat mode configuration."""
 
     llm_backend: str = "ollama"
-    llm_model: Optional[str] = None
+    llm_model: str | None = None
     enable_voice: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ChatConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "ChatConfig":
         """Create from dictionary."""
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in valid_keys}
@@ -108,7 +108,7 @@ class AppConfig:
     effects: EffectsConfig = field(default_factory=EffectsConfig)
     chat: ChatConfig = field(default_factory=ChatConfig)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "render": self.render.to_dict(),
@@ -118,7 +118,7 @@ class AppConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AppConfig":
+    def from_dict(cls, data: dict[str, Any]) -> "AppConfig":
         """Create from dictionary."""
         render = RenderConfig.from_dict(data.get("render", {}))
         character = CharacterConfig.from_dict(data.get("character", {}))

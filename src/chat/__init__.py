@@ -9,23 +9,23 @@ from .llm import (
     list_available_backends,
 )
 from .memory import (
-    Message,
     ConversationMemory,
     MemoryManager,
+    Message,
 )
 from .personality import (
+    PERSONALITIES,
     CharacterPersonality,
+    get_all_personalities,
     get_personality,
     get_system_prompt,
-    get_all_personalities,
-    PERSONALITIES,
 )
 from .voice_chat import (
-    VoiceChatController,
     SentenceChunker,
     SpeechChunk,
-    stream_with_voice,
+    VoiceChatController,
     chunk_text_for_tts,
+    stream_with_voice,
 )
 
 __all__ = [

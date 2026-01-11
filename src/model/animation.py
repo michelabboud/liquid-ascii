@@ -7,8 +7,8 @@ for creating fluid, lifelike animations.
 
 import math
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional, Tuple
 
 
 def smoothstep(t: float) -> float:
@@ -101,7 +101,7 @@ def elastic_out(t: float) -> float:
     return 2 ** (-10 * t) * math.sin((t * 10 - 0.75) * c4) + 1
 
 
-def organic_noise(t: float) -> Tuple[float, float, float]:
+def organic_noise(t: float) -> tuple[float, float, float]:
     """
     Generate organic noise for subtle idle movement.
 
@@ -228,8 +228,8 @@ class AnimationController:
     """
     Manages multiple animated values with smooth transitions.
     """
-    values: Dict[str, float] = field(default_factory=dict)
-    targets: Dict[str, AnimationTarget] = field(default_factory=dict)
+    values: dict[str, float] = field(default_factory=dict)
+    targets: dict[str, AnimationTarget] = field(default_factory=dict)
     _start_time: float = field(default_factory=time.time)
 
     def set_value(self, name: str, value: float):
@@ -269,7 +269,7 @@ class AnimationController:
             easing=easing,
         )
 
-    def update(self) -> Dict[str, float]:
+    def update(self) -> dict[str, float]:
         """
         Update all animated values.
 
@@ -289,7 +289,7 @@ class AnimationController:
 
         return self.values
 
-    def is_animating(self, name: Optional[str] = None) -> bool:
+    def is_animating(self, name: str | None = None) -> bool:
         """Check if a value (or any value) is currently animating."""
         if name is not None:
             return name in self.targets

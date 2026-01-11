@@ -5,10 +5,9 @@ Lightweight alternative to edge-tts that works offline.
 Uses system TTS: SAPI5 (Windows), NSSpeech (macOS), espeak (Linux)
 """
 
+import asyncio
 import tempfile
 from pathlib import Path
-from typing import Optional, List, Dict
-import asyncio
 
 try:
     import pyttsx3
@@ -40,7 +39,7 @@ class OfflineTTSEngine:
 
         self.engine = pyttsx3.init()
 
-    def list_voices(self) -> List[Dict[str, str]]:
+    def list_voices(self) -> list[dict[str, str]]:
         """List available system voices."""
         voices = self.engine.getProperty('voices')
         return [
@@ -52,7 +51,7 @@ class OfflineTTSEngine:
             for voice in voices
         ]
 
-    def set_voice(self, voice_id: Optional[str] = None):
+    def set_voice(self, voice_id: str | None = None):
         """Set voice by ID or use default."""
         if voice_id:
             self.engine.setProperty('voice', voice_id)
@@ -68,10 +67,10 @@ class OfflineTTSEngine:
     async def synthesize(
         self,
         text: str,
-        voice: Optional[str] = None,
+        voice: str | None = None,
         rate: int = 150,
-        output_dir: Optional[Path] = None
-    ) -> Dict:
+        output_dir: Path | None = None
+    ) -> dict:
         """
         Synthesize text to speech and save as audio file.
 

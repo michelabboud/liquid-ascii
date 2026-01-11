@@ -4,13 +4,12 @@ Voice-enabled chat integration.
 Combines LLM chat with TTS and lip sync for fully conversational AI.
 """
 
-import asyncio
-import re
-from typing import AsyncIterator, Tuple, Optional
-from queue import Queue
-from dataclasses import dataclass
-import tempfile
 import os
+import re
+import tempfile
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
+from queue import Queue
 
 
 @dataclass
@@ -18,8 +17,8 @@ class SpeechChunk:
     """A chunk of text ready to be synthesized."""
 
     text: str
-    audio_file: Optional[str] = None
-    word_timings: Optional[list] = None
+    audio_file: str | None = None
+    word_timings: list | None = None
 
 
 class SentenceChunker:
@@ -40,7 +39,7 @@ class SentenceChunker:
             'etc.', 'e.g.', 'i.e.', 'vs.', 'ph.d.',
         }
 
-    def add_token(self, token: str) -> Optional[str]:
+    def add_token(self, token: str) -> str | None:
         """
         Add a token to the buffer.
 
@@ -73,7 +72,7 @@ class SentenceChunker:
 
         return None
 
-    def flush(self) -> Optional[str]:
+    def flush(self) -> str | None:
         """
         Get remaining buffer content.
 
@@ -94,7 +93,7 @@ class VoiceChatController:
     Manages streaming LLM responses, TTS synthesis, and audio playback.
     """
 
-    def __init__(self, tts_engine, voice: Optional[str] = None):
+    def __init__(self, tts_engine, voice: str | None = None):
         """
         Initialize voice chat controller.
 
@@ -109,7 +108,7 @@ class VoiceChatController:
 
     async def process_streaming_response(
         self, response_stream: AsyncIterator[str]
-    ) -> AsyncIterator[Tuple[str, Optional[SpeechChunk]]]:
+    ) -> AsyncIterator[tuple[str, SpeechChunk | None]]:
         """
         Process streaming LLM response with sentence-level TTS.
 
@@ -179,7 +178,7 @@ async def stream_with_voice(
     chat_session,
     user_message: str,
     voice_controller: VoiceChatController,
-) -> AsyncIterator[Tuple[str, str, Optional[SpeechChunk]]]:
+) -> AsyncIterator[tuple[str, str, SpeechChunk | None]]:
     """
     Stream chat response with voice synthesis.
 

@@ -6,12 +6,13 @@ Primary support for edge-tts (Microsoft Edge online TTS).
 """
 
 import asyncio
-import tempfile
+import contextlib
 import os
+import tempfile
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncGenerator, List, Optional, Tuple
 
 
 @dataclass
@@ -36,7 +37,7 @@ class TTSEngine(ABC):
     """Abstract base class for TTS engines."""
 
     @abstractmethod
-    async def synthesize(self, text: str, output_path: Optional[Path] = None) -> TTSResult:
+    async def synthesize(self, text: str, output_path: Path | None = None) -> TTSResult:
         """
         Synthesize speech from text.
 
@@ -50,7 +51,7 @@ class TTSEngine(ABC):
         pass
 
     @abstractmethod
-    async def list_voices(self) -> List[Voice]:
+    async def list_voices(self) -> list[Voice]:
         """List available voices."""
         pass
 
@@ -105,7 +106,7 @@ class EdgeTTSEngine(TTSEngine):
         self.volume = volume
         self._temp_dir = tempfile.mkdtemp(prefix="liquid_ascii_tts_")
 
-    async def synthesize(self, text: str, output_path: Optional[Path] = None) -> TTSResult:
+    async def synthesize(self, text: str, output_path: Path | None = None) -> TTSResult:
         """Synthesize speech from text using Edge TTS."""
         import edge_tts
 
@@ -136,8 +137,8 @@ class EdgeTTSEngine(TTSEngine):
     async def synthesize_with_timestamps(
         self,
         text: str,
-        output_path: Optional[Path] = None
-    ) -> Tuple[TTSResult, List[dict]]:
+        output_path: Path | None = None
+    ) -> tuple[TTSResult, list[dict]]:
         """
         Synthesize speech and get word timestamps.
 
@@ -207,7 +208,7 @@ class EdgeTTSEngine(TTSEngine):
             if chunk["type"] == "audio":
                 yield chunk["data"]
 
-    async def list_voices(self) -> List[Voice]:
+    async def list_voices(self) -> list[Voice]:
         """List all available Edge TTS voices."""
         import edge_tts
 
@@ -244,10 +245,8 @@ class EdgeTTSEngine(TTSEngine):
 
     def __del__(self):
         """Destructor to clean up temp files."""
-        try:
+        with contextlib.suppress(Exception):
             self.cleanup()
-        except Exception:
-            pass
 
 
 def run_async(coro):
@@ -272,19 +271,19 @@ class SyncEdgeTTSEngine:
         """Initialize with same args as EdgeTTSEngine."""
         self._engine = EdgeTTSEngine(**kwargs)
 
-    def synthesize(self, text: str, output_path: Optional[Path] = None) -> TTSResult:
+    def synthesize(self, text: str, output_path: Path | None = None) -> TTSResult:
         """Synthesize speech synchronously."""
         return run_async(self._engine.synthesize(text, output_path))
 
     def synthesize_with_timestamps(
         self,
         text: str,
-        output_path: Optional[Path] = None
-    ) -> Tuple[TTSResult, List[dict]]:
+        output_path: Path | None = None
+    ) -> tuple[TTSResult, list[dict]]:
         """Synthesize speech with timestamps synchronously."""
         return run_async(self._engine.synthesize_with_timestamps(text, output_path))
 
-    def list_voices(self) -> List[Voice]:
+    def list_voices(self) -> list[Voice]:
         """List voices synchronously."""
         return run_async(self._engine.list_voices())
 

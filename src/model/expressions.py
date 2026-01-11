@@ -4,9 +4,8 @@ Facial expression system for animated heads.
 Provides predefined expression presets with smooth transitions between states.
 """
 
-from dataclasses import dataclass, field
-from typing import Tuple, Dict, Optional
 import time
+from dataclasses import dataclass
 
 
 @dataclass
@@ -36,7 +35,7 @@ class Expression:
     eye_look_y: float = 0.0  # -1 = down, 0 = center, +1 = up
 
     # Head orientation
-    head_tilt: Tuple[float, float, float] = (0.0, 0.0, 0.0)  # (nod, turn, lean)
+    head_tilt: tuple[float, float, float] = (0.0, 0.0, 0.0)  # (nod, turn, lean)
 
     # Meta information
     intensity: float = 1.0  # Multiplier for expression strength
@@ -44,7 +43,7 @@ class Expression:
 
 
 # Predefined expression library
-EXPRESSIONS: Dict[str, Expression] = {
+EXPRESSIONS: dict[str, Expression] = {
     "neutral": Expression(
         name="neutral",
         eyebrow_raise=0.0,
@@ -187,12 +186,12 @@ class ExpressionManager:
     def __init__(self):
         """Initialize expression manager."""
         self.current_expression: Expression = EXPRESSIONS["neutral"]
-        self.target_expression: Optional[Expression] = None
+        self.target_expression: Expression | None = None
         self.transition_start_time: float = 0.0
         self.transition_duration: float = 0.5
         self.is_transitioning: bool = False
 
-    def set_expression(self, expression_name: str, duration: Optional[float] = None):
+    def set_expression(self, expression_name: str, duration: float | None = None):
         """
         Transition to a new expression.
 

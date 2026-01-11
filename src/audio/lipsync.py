@@ -9,13 +9,12 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from ..model.visemes import (
-    Viseme,
-    VisemeCue,
-    VisemeController,
     RHUBARB_TO_VISEME,
+    Viseme,
+    VisemeController,
+    VisemeCue,
     simple_text_to_visemes,
 )
 
@@ -49,7 +48,7 @@ class LipSyncGenerator:
                         accurate phoneme detection
         """
         self.use_rhubarb = use_rhubarb
-        self._rhubarb_available: Optional[bool] = None
+        self._rhubarb_available: bool | None = None
 
     def _check_rhubarb(self) -> bool:
         """Check if Rhubarb Lip Sync is available."""
@@ -71,8 +70,8 @@ class LipSyncGenerator:
     def generate_from_audio(
         self,
         audio_path: Path,
-        dialog_text: Optional[str] = None,
-    ) -> List[VisemeCue]:
+        dialog_text: str | None = None,
+    ) -> list[VisemeCue]:
         """
         Generate viseme cues from an audio file.
 
@@ -101,8 +100,8 @@ class LipSyncGenerator:
     def _generate_with_rhubarb(
         self,
         audio_path: Path,
-        dialog_text: Optional[str] = None,
-    ) -> List[VisemeCue]:
+        dialog_text: str | None = None,
+    ) -> list[VisemeCue]:
         """Generate visemes using Rhubarb Lip Sync."""
         # Convert to WAV if needed (Rhubarb prefers WAV)
         wav_path = audio_path
@@ -148,7 +147,7 @@ class LipSyncGenerator:
             if cleanup_wav and wav_path.exists():
                 wav_path.unlink()
 
-    def _parse_rhubarb_output(self, data: dict) -> List[VisemeCue]:
+    def _parse_rhubarb_output(self, data: dict) -> list[VisemeCue]:
         """Parse Rhubarb JSON output to viseme cues."""
         cues = []
 
@@ -189,7 +188,7 @@ class LipSyncGenerator:
         except Exception:
             return 5.0  # Default fallback
 
-    def _generate_simple_pattern(self, duration: float) -> List[VisemeCue]:
+    def _generate_simple_pattern(self, duration: float) -> list[VisemeCue]:
         """Generate a simple alternating mouth pattern."""
         cues = []
         time = 0.0
@@ -212,9 +211,9 @@ class LipSyncGenerator:
     def generate_from_text(
         self,
         text: str,
-        duration: Optional[float] = None,
+        duration: float | None = None,
         words_per_minute: float = 150.0,
-    ) -> List[VisemeCue]:
+    ) -> list[VisemeCue]:
         """
         Generate viseme cues from text without audio.
 
@@ -233,8 +232,8 @@ class LipSyncGenerator:
 
     def generate_from_word_timings(
         self,
-        word_timings: List[dict],
-    ) -> List[VisemeCue]:
+        word_timings: list[dict],
+    ) -> list[VisemeCue]:
         """
         Generate viseme cues from word timing data.
 
@@ -264,7 +263,7 @@ class LipSyncGenerator:
         word: str,
         start_time: float,
         duration: float,
-    ) -> List[VisemeCue]:
+    ) -> list[VisemeCue]:
         """Convert a single word to viseme cues."""
         cues = []
 
@@ -314,9 +313,9 @@ class LipSyncGenerator:
 
 def create_lip_sync_controller(
     text: str,
-    audio_path: Optional[Path] = None,
-    word_timings: Optional[List[dict]] = None,
-    duration: Optional[float] = None,
+    audio_path: Path | None = None,
+    word_timings: list[dict] | None = None,
+    duration: float | None = None,
 ) -> VisemeController:
     """
     Convenience function to create a configured VisemeController.

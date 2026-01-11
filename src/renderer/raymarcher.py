@@ -5,13 +5,14 @@ This is the core rendering engine that casts rays through the scene
 and evaluates signed distance functions to find surfaces.
 """
 
-import numpy as np
-from typing import Callable, Optional, Tuple
-from .camera import Camera
-from .shading import ASCIIShader
-from .sdf import compute_normal
-from .quality import QualityPreset, QualityLevel, get_quality_preset
+from collections.abc import Callable
 
+import numpy as np
+
+from .camera import Camera
+from .quality import QualityLevel, get_quality_preset
+from .sdf import compute_normal
+from .shading import ASCIIShader
 
 # Type alias for SDF functions
 SDFFunc = Callable[[np.ndarray], float]
@@ -29,12 +30,12 @@ class Raymarcher:
         self,
         width: int = 80,
         height: int = 40,
-        camera: Optional[Camera] = None,
-        shader: Optional[ASCIIShader] = None,
+        camera: Camera | None = None,
+        shader: ASCIIShader | None = None,
         max_steps: int = 64,
         max_distance: float = 100.0,
         epsilon: float = 0.001,
-        quality: Optional[QualityLevel] = None,
+        quality: QualityLevel | None = None,
     ):
         """
         Initialize the raymarcher.
@@ -98,7 +99,7 @@ class Raymarcher:
         origin: np.ndarray,
         direction: np.ndarray,
         sdf: SDFFunc
-    ) -> Tuple[Optional[float], Optional[np.ndarray]]:
+    ) -> tuple[float | None, np.ndarray | None]:
         """
         March a single ray through the scene.
 
@@ -274,7 +275,7 @@ class AdaptiveRaymarcher(Raymarcher):
         origin: np.ndarray,
         direction: np.ndarray,
         sdf: SDFFunc
-    ) -> Tuple[Optional[float], Optional[np.ndarray]]:
+    ) -> tuple[float | None, np.ndarray | None]:
         """
         Adaptive raymarching with over-relaxation for speed.
         """

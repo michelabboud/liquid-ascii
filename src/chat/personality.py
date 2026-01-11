@@ -5,7 +5,6 @@ Defines personality traits and speaking styles for each character.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -218,7 +217,7 @@ def get_personality(character_name: str) -> CharacterPersonality:
     return PERSONALITIES.get(character_name, PERSONALITIES["default"])
 
 
-def get_system_prompt(character_name: str, custom_instructions: Optional[str] = None) -> str:
+def get_system_prompt(character_name: str, custom_instructions: str | None = None) -> str:
     """
     Get system prompt for a character.
 

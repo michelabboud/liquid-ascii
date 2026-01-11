@@ -4,11 +4,10 @@ Visual effects for ASCII rendering.
 Provides particle systems, motion trails, glitch effects, scanlines, and more.
 """
 
+import math
 import random
 import time
-import math
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
 
 
 @dataclass
@@ -51,7 +50,7 @@ class ParticleSystem:
         self.height = height
         self.max_particles = max_particles
         self.chars = chars
-        self.particles: List[Particle] = []
+        self.particles: list[Particle] = []
         self.spawn_rate = 2.0  # Particles per second
         self.last_spawn = time.time()
 
@@ -88,7 +87,7 @@ class ParticleSystem:
         )
         self.particles.append(particle)
 
-    def render(self, frame: List[List[str]]) -> List[List[str]]:
+    def render(self, frame: list[list[str]]) -> list[list[str]]:
         """
         Render particles onto frame.
 
@@ -129,9 +128,9 @@ class MotionTrail:
             trail_length: Number of trail frames to keep
         """
         self.trail_length = trail_length
-        self.history: List[List[List[str]]] = []
+        self.history: list[list[list[str]]] = []
 
-    def add_frame(self, frame: List[List[str]]):
+    def add_frame(self, frame: list[list[str]]):
         """Add frame to history."""
         # Deep copy frame
         frame_copy = [row[:] for row in frame]
@@ -141,7 +140,7 @@ class MotionTrail:
         if len(self.history) > self.trail_length:
             self.history.pop(0)
 
-    def render(self, frame: List[List[str]]) -> List[List[str]]:
+    def render(self, frame: list[list[str]]) -> list[list[str]]:
         """
         Render trail effect.
 
@@ -205,7 +204,7 @@ class GlitchEffect:
         self.intensity = intensity
         self.glitch_chars = "!@#$%^&*<>?/\\|"
 
-    def render(self, frame: List[List[str]]) -> List[List[str]]:
+    def render(self, frame: list[list[str]]) -> list[list[str]]:
         """Apply glitch effect to frame."""
         if random.random() > self.intensity:
             return frame  # No glitch this frame
@@ -267,7 +266,7 @@ class ScanlineEffect:
         """Update scanline position."""
         self.offset += self.speed * dt
 
-    def render(self, frame: List[List[str]]) -> List[List[str]]:
+    def render(self, frame: list[list[str]]) -> list[list[str]]:
         """Apply scanline effect."""
         for y in range(len(frame)):
             # Calculate scanline intensity for this row
@@ -315,7 +314,7 @@ class MatrixRainEffect:
         self.width = width
         self.height = height
         self.density = density
-        self.columns: List[Optional[int]] = [None] * width  # Y position per column
+        self.columns: list[int | None] = [None] * width  # Y position per column
         self.chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
     def update(self, dt: float):
@@ -331,7 +330,7 @@ class MatrixRainEffect:
                 if self.columns[x] >= self.height:
                     self.columns[x] = None
 
-    def render(self, frame: List[List[str]]) -> List[List[str]]:
+    def render(self, frame: list[list[str]]) -> list[list[str]]:
         """Render matrix rain."""
         for x in range(min(self.width, len(frame[0]))):
             y_pos = self.columns[x]
@@ -369,8 +368,8 @@ class DepthOfFieldEffect:
         self.blur_strength = blur_strength
 
     def render(
-        self, frame: List[List[str]], depth_buffer: Optional[List[List[float]]] = None
-    ) -> List[List[str]]:
+        self, frame: list[list[str]], depth_buffer: list[list[float]] | None = None
+    ) -> list[list[str]]:
         """
         Apply depth-of-field blur.
 
@@ -399,7 +398,7 @@ class DepthOfFieldEffect:
 
         return frame
 
-    def _simple_blur(self, frame: List[List[str]]) -> List[List[str]]:
+    def _simple_blur(self, frame: list[list[str]]) -> list[list[str]]:
         """Simple radial blur from center."""
         cy = len(frame) // 2
         cx = len(frame[0]) // 2
@@ -455,12 +454,12 @@ class EffectsCompositor:
         self.height = height
 
         # Available effects
-        self.particles: Optional[ParticleSystem] = None
-        self.trail: Optional[MotionTrail] = None
-        self.glitch: Optional[GlitchEffect] = None
-        self.scanlines: Optional[ScanlineEffect] = None
-        self.matrix_rain: Optional[MatrixRainEffect] = None
-        self.dof: Optional[DepthOfFieldEffect] = None
+        self.particles: ParticleSystem | None = None
+        self.trail: MotionTrail | None = None
+        self.glitch: GlitchEffect | None = None
+        self.scanlines: ScanlineEffect | None = None
+        self.matrix_rain: MatrixRainEffect | None = None
+        self.dof: DepthOfFieldEffect | None = None
 
     def enable_particles(self, max_particles: int = 50):
         """Enable particle system."""
@@ -495,7 +494,7 @@ class EffectsCompositor:
         if self.matrix_rain:
             self.matrix_rain.update(dt)
 
-    def render(self, frame_str: str, depth_buffer: Optional[List[List[float]]] = None) -> str:
+    def render(self, frame_str: str, depth_buffer: list[list[float]] | None = None) -> str:
         """
         Apply all enabled effects to frame.
 

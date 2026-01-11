@@ -7,17 +7,16 @@ support for colors, screen buffering, and keyboard input.
 
 import sys
 import time
-from typing import Callable, Optional, List
-from enum import Enum
+from collections.abc import Callable
 
 from .colors import (
+    PRESET_SCHEMES,
+    RGB,
     ColorMode,
     ColorScheme,
     RainbowColors,
-    RGB,
-    PRESET_SCHEMES,
-    rgb_to_ansi_escape,
     reset_color,
+    rgb_to_ansi_escape,
 )
 
 
@@ -30,12 +29,12 @@ class Display:
 
     def __init__(
         self,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        width: int | None = None,
+        height: int | None = None,
         target_fps: float = 30.0,
         color_mode: ColorMode = ColorMode.TRUECOLOR,
-        color_scheme: Optional[ColorScheme] = None,
-        rainbow: Optional[RainbowColors] = None,
+        color_scheme: ColorScheme | None = None,
+        rainbow: RainbowColors | None = None,
     ):
         """
         Initialize the display.
@@ -59,7 +58,7 @@ class Display:
         self._frame_time = 1.0 / target_fps
         self._last_frame_time = 0.0
         self._frame_count = 0
-        self._fps_history: List[float] = []
+        self._fps_history: list[float] = []
 
     def _init_terminal(self):
         """Initialize blessed terminal."""
@@ -117,8 +116,8 @@ class Display:
     def render_frame(
         self,
         frame: str,
-        intensities: Optional[List[List[float]]] = None,
-        status_text: Optional[str] = None,
+        intensities: list[list[float]] | None = None,
+        status_text: str | None = None,
     ):
         """
         Render a frame to the terminal.
@@ -164,7 +163,7 @@ class Display:
         row: int,
         width: int,
         height: int,
-        intensities: Optional[List[List[float]]] = None,
+        intensities: list[list[float]] | None = None,
     ) -> RGB:
         """Get color for a character position."""
         intensity = 1.0
@@ -214,7 +213,7 @@ class Display:
     def run_loop(
         self,
         update_fn: Callable[[float], str],
-        on_key: Optional[Callable[[str], bool]] = None,
+        on_key: Callable[[str], bool] | None = None,
         show_fps: bool = True,
     ):
         """
@@ -298,7 +297,7 @@ class SimpleDisplay:
         """Show cursor."""
         print("\033[?25h", end="")
 
-    def render_frame(self, frame: str, status_text: Optional[str] = None):
+    def render_frame(self, frame: str, status_text: str | None = None):
         """Render frame with simple cursor positioning."""
         # Move to home position
         print("\033[H", end="")

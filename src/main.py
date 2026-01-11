@@ -9,28 +9,26 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
-from typing import Optional
 
-from .renderer import Raymarcher, Camera, ASCIIShader, QualityLevel, AdaptiveQualityController
-from .model import Head, CharacterHead, AnimationController
-from .model.visemes import VisemeController
-from .terminal import Display, ColorMode, RainbowColors, PRESET_SCHEMES, EffectsCompositor
-from .audio import EdgeTTSEngine, AudioPlayer, LipSyncGenerator
-from .tutor import TextTutor
-from .chat import ChatSession, list_available_backends
+from .audio import AudioPlayer, EdgeTTSEngine, LipSyncGenerator
+from .chat import ChatSession
 from .config import (
-    load_config,
+    AppConfig,
+    CharacterConfig,
+    ChatConfig,
+    EffectsConfig,
+    RenderConfig,
     find_config_file,
+    list_presets,
+    load_config,
     load_preset,
     save_preset,
-    list_presets,
-    AppConfig,
-    RenderConfig,
-    CharacterConfig,
-    EffectsConfig,
-    ChatConfig,
 )
-
+from .model import CharacterHead
+from .model.visemes import VisemeController
+from .renderer import ASCIIShader, Camera, QualityLevel, Raymarcher
+from .terminal import PRESET_SCHEMES, Display, EffectsCompositor
+from .tutor import TextTutor
 
 # Effect Presets
 EFFECT_PRESETS = {
@@ -218,12 +216,12 @@ def setup_effects_from_args(args, width: int, height: int):
 def run_demo_mode(
     character: str = "default",
     color_scheme: str = "default",
-    rainbow_mode: Optional[str] = None,
+    rainbow_mode: str | None = None,
     fps: float = 15.0,
-    expression: Optional[str] = None,
+    expression: str | None = None,
     interactive: bool = False,
     quality: str = "high",
-    compositor: Optional[EffectsCompositor] = None,
+    compositor: EffectsCompositor | None = None,
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -238,7 +236,12 @@ def run_demo_mode(
         quality: Quality level (low/medium/high/ultra/auto)
         compositor: Optional effects compositor for visual effects
     """
-    from .terminal import InteractiveInputHandler, InteractiveController, InputCommand, PRESET_SCHEMES
+    from .terminal import (
+        PRESET_SCHEMES,
+        InputCommand,
+        InteractiveController,
+        InteractiveInputHandler,
+    )
 
     display = Display(target_fps=fps)
     width, height = display.get_size()
@@ -358,8 +361,8 @@ async def run_speak_mode(
     text: str,
     character: str = "default",
     color_scheme: str = "default",
-    voice: Optional[str] = None,
-    expression: Optional[str] = None,
+    voice: str | None = None,
+    expression: str | None = None,
     quality: str = "high",
 ):
     """
@@ -373,7 +376,6 @@ async def run_speak_mode(
         expression: Initial expression
         quality: Rendering quality
     """
-    from .audio.tts import run_async
 
     display = Display(target_fps=15.0)
     width, height = display.get_size()
@@ -398,7 +400,7 @@ async def run_speak_mode(
     player = AudioPlayer()
     lipsync = LipSyncGenerator()
 
-    print(f"Synthesizing speech...")
+    print("Synthesizing speech...")
     result, word_timings = await tts.synthesize_with_timestamps(text)
     print(f"Audio duration: {result.duration:.1f}s")
 
@@ -444,8 +446,8 @@ async def run_tutor_mode(
     file_path: str,
     character: str = "default",
     color_scheme: str = "default",
-    voice: Optional[str] = None,
-    expression: Optional[str] = None,
+    voice: str | None = None,
+    expression: str | None = None,
     quality: str = "high",
 ):
     """
@@ -545,7 +547,7 @@ async def run_tutor_mode(
 
 def run_static_mode(
     character: str = "default",
-    expression: Optional[str] = None,
+    expression: str | None = None,
     quality: str = "high",
 ):
     """
@@ -572,9 +574,9 @@ async def run_chat_mode(
     fps: float = 15.0,
     quality: str = "high",
     llm_backend: str = "ollama",
-    llm_model: Optional[str] = None,
+    llm_model: str | None = None,
     enable_voice: bool = False,
-    voice: Optional[str] = None,
+    voice: str | None = None,
 ):
     """
     Run interactive chat mode with LLM.
@@ -589,7 +591,7 @@ async def run_chat_mode(
         enable_voice: Enable voice output with TTS and lip sync
         voice: TTS voice name (optional, defaults to character voice)
     """
-    from .chat import ChatSession, VoiceChatController, stream_with_voice
+    from .chat import VoiceChatController, stream_with_voice
 
     print(f"Initializing chat mode with {character} character...")
     print(f"LLM Backend: {llm_backend}")

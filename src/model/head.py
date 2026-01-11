@@ -6,23 +6,21 @@ morphing between expressions and mouth shapes.
 """
 
 import math
-from dataclasses import dataclass, field
-from typing import Callable, Optional, Tuple
+from collections.abc import Callable
+from dataclasses import dataclass
 
 import numpy as np
 
 from ..renderer.sdf import (
+    Vec3,
+    _to_array,
     sdf_ellipsoid,
-    sdf_sphere,
     sdf_smooth_subtraction,
     sdf_smooth_union,
-    sdf_capsule,
-    normalize,
-    _to_array,
-    Vec3,
+    sdf_sphere,
 )
-from .animation import organic_noise, blink_pattern, breathing_motion
-from .expressions import ExpressionManager, Expression
+from .animation import blink_pattern, breathing_motion, organic_noise
+from .expressions import Expression, ExpressionManager
 
 
 @dataclass
@@ -50,7 +48,7 @@ class HeadState:
     head_tilt_z: float = 0.0  # lean
 
     # Organic movement offset
-    idle_offset: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    idle_offset: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
 
 @dataclass
@@ -59,7 +57,7 @@ class HeadGeometry:
     Geometric parameters for head shape.
     """
     # Main head
-    head_radii: Tuple[float, float, float] = (1.0, 1.3, 1.0)
+    head_radii: tuple[float, float, float] = (1.0, 1.3, 1.0)
 
     # Eyes
     eye_socket_radius: float = 0.18
@@ -94,7 +92,7 @@ class Head:
 
     def __init__(
         self,
-        geometry: Optional[HeadGeometry] = None,
+        geometry: HeadGeometry | None = None,
         enable_idle_animation: bool = True,
         enable_expressions: bool = True,
         enable_gestures: bool = False,
@@ -178,7 +176,7 @@ class Head:
         self.state.head_tilt_y = y
         self.state.head_tilt_z = z
 
-    def set_expression(self, expression_name: str, duration: Optional[float] = None):
+    def set_expression(self, expression_name: str, duration: float | None = None):
         """
         Set facial expression.
 
@@ -216,7 +214,7 @@ class Head:
         self.state.head_tilt_y = expression.head_tilt[1]
         self.state.head_tilt_z = expression.head_tilt[2]
 
-    def get_current_expression(self) -> Optional[str]:
+    def get_current_expression(self) -> str | None:
         """Get name of current expression."""
         if self.expression_manager:
             return self.expression_manager.get_current_expression_name()
@@ -338,7 +336,7 @@ class Head:
 
         return head_sdf
 
-    def get_sdf_with_pupils(self) -> Callable[[Vec3], Tuple[float, bool]]:
+    def get_sdf_with_pupils(self) -> Callable[[Vec3], tuple[float, bool]]:
         """
         Get SDF function that also returns whether point is on pupil.
 
@@ -363,7 +361,7 @@ class Head:
             g.eye_depth + 0.1
         ])
 
-        def sdf_with_pupils(point: Vec3) -> Tuple[float, bool]:
+        def sdf_with_pupils(point: Vec3) -> tuple[float, bool]:
             p = _to_array(point)
             dist = base_sdf(point)
 

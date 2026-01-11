@@ -7,7 +7,6 @@ to balance visual quality with performance.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 
 class QualityLevel(Enum):
@@ -109,7 +108,7 @@ class AdaptiveQualityController:
         self.downgrade_threshold = 0.7  # Drop quality at 70% of target FPS
         self.upgrade_threshold = 1.1  # Increase quality at 110% of target FPS
 
-    def update(self, current_fps: float) -> Optional[QualityLevel]:
+    def update(self, current_fps: float) -> QualityLevel | None:
         """
         Update quality based on current FPS.
 

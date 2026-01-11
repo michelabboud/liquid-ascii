@@ -5,9 +5,9 @@ Provides non-blocking keyboard input with command processing for
 interactive control during animation playback.
 """
 
-from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Optional, Callable, Dict
+from enum import Enum, auto
+
 from blessed import Terminal
 
 
@@ -50,7 +50,7 @@ class InputCommand(Enum):
 class InputEvent:
     """Represents a processed input event."""
     command: InputCommand
-    value: Optional[float] = None  # For analog controls like FPS adjustment
+    value: float | None = None  # For analog controls like FPS adjustment
 
 
 class InteractiveInputHandler:
@@ -60,7 +60,7 @@ class InteractiveInputHandler:
     Uses blessed terminal for cross-platform keyboard handling.
     """
 
-    def __init__(self, term: Optional[Terminal] = None):
+    def __init__(self, term: Terminal | None = None):
         """
         Initialize input handler.
 
@@ -72,7 +72,7 @@ class InteractiveInputHandler:
         self._show_help = False
 
         # Key mapping
-        self._key_map: Dict[str, InputCommand] = {
+        self._key_map: dict[str, InputCommand] = {
             # Quit
             'q': InputCommand.QUIT,
             'Q': InputCommand.QUIT,
@@ -123,7 +123,7 @@ class InteractiveInputHandler:
             "confused", "tired", "wink", "thinking"
         ]
 
-    def poll_input(self, timeout: float = 0.0) -> Optional[InputEvent]:
+    def poll_input(self, timeout: float = 0.0) -> InputEvent | None:
         """
         Poll for keyboard input (non-blocking).
 
@@ -205,7 +205,7 @@ class InteractiveInputHandler:
         """Check if input handling is enabled."""
         return self._enabled
 
-    def get_expression_name(self, command: InputCommand) -> Optional[str]:
+    def get_expression_name(self, command: InputCommand) -> str | None:
         """
         Get expression name for an expression command.
 

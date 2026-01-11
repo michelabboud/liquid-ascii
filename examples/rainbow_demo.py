@@ -6,15 +6,15 @@ Demonstrates the rainbow color effects on the animated head.
 Shows different color modes: horizontal, vertical, radial, wave.
 """
 
+import os
 import sys
 import time
-import os
 
 sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
-from src.renderer import Raymarcher, Camera, ASCIIShader
 from src.model import Head
-from src.terminal.colors import RainbowColors, rgb_to_ansi_escape, reset_color
+from src.renderer import ASCIIShader, Camera, Raymarcher
+from src.terminal.colors import RainbowColors, reset_color, rgb_to_ansi_escape
 
 
 def render_with_rainbow(frame: str, rainbow: RainbowColors, width: int, height: int) -> str:

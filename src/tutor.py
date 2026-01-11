@@ -7,9 +7,9 @@ markdown files, and provide tutoring-style narration.
 
 import asyncio
 import re
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncGenerator, Generator, List, Optional, Tuple
 
 
 @dataclass
@@ -26,7 +26,7 @@ class MarkdownParser:
     Parse markdown into speakable segments.
     """
 
-    def parse(self, content: str) -> List[TutorSegment]:
+    def parse(self, content: str) -> list[TutorSegment]:
         """
         Parse markdown content into segments.
 
@@ -162,7 +162,7 @@ class MarkdownParser:
 
     def _summarize_code(self, code: str, lang: str = "") -> str:
         """Create a spoken summary of code."""
-        lines = [l for l in code.split("\n") if l.strip()]
+        lines = [line for line in code.split("\n") if line.strip()]
 
         if not lines:
             return "Empty code block."
@@ -200,10 +200,10 @@ class TextTutor:
     def __init__(self):
         """Initialize the tutor."""
         self._parser = MarkdownParser()
-        self._segments: List[TutorSegment] = []
+        self._segments: list[TutorSegment] = []
         self._current_segment_idx = 0
 
-    def load_file(self, file_path: Path) -> List[TutorSegment]:
+    def load_file(self, file_path: Path) -> list[TutorSegment]:
         """
         Load a text or markdown file.
 
@@ -229,7 +229,7 @@ class TextTutor:
         self._current_segment_idx = 0
         return self._segments
 
-    def load_text(self, text: str, is_markdown: bool = False) -> List[TutorSegment]:
+    def load_text(self, text: str, is_markdown: bool = False) -> list[TutorSegment]:
         """
         Load text content directly.
 
@@ -252,11 +252,11 @@ class TextTutor:
         self._current_segment_idx = 0
         return self._segments
 
-    def get_segments(self) -> List[TutorSegment]:
+    def get_segments(self) -> list[TutorSegment]:
         """Get all loaded segments."""
         return self._segments
 
-    def get_next_segment(self) -> Optional[TutorSegment]:
+    def get_next_segment(self) -> TutorSegment | None:
         """Get next segment to read."""
         if self._current_segment_idx < len(self._segments):
             segment = self._segments[self._current_segment_idx]
@@ -274,8 +274,7 @@ class TextTutor:
 
     def segment_generator(self) -> Generator[TutorSegment, None, None]:
         """Generate segments one by one."""
-        for segment in self._segments:
-            yield segment
+        yield from self._segments
 
     async def speak_all(
         self,
@@ -312,7 +311,7 @@ class TextTutor:
             if segment.pause_after > 0:
                 await asyncio.sleep(segment.pause_after)
 
-    def get_progress(self) -> Tuple[int, int]:
+    def get_progress(self) -> tuple[int, int]:
         """Get (current_index, total) progress."""
         return (self._current_segment_idx, len(self._segments))
 

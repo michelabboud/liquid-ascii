@@ -7,10 +7,11 @@ This is the simplest example showing the core rendering pipeline.
 """
 
 import sys
+
 sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
-from src.renderer import Raymarcher, Camera, ASCIIShader
 from src.model.head import create_simple_head_sdf
+from src.renderer import ASCIIShader, Camera, Raymarcher
 
 
 def main():

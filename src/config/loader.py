@@ -6,7 +6,6 @@ Supports YAML and JSON formats with multi-location resolution.
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 try:
     import yaml
@@ -36,8 +35,8 @@ class ConfigLoader:
 
     @staticmethod
     def find_config_file(
-        explicit_path: Optional[str] = None,
-    ) -> Optional[Path]:
+        explicit_path: str | None = None,
+    ) -> Path | None:
         """
         Find configuration file.
 
@@ -119,7 +118,7 @@ class ConfigLoader:
     @staticmethod
     def _load_yaml(path: Path) -> AppConfig:
         """Load YAML configuration."""
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         if not isinstance(data, dict):
@@ -130,7 +129,7 @@ class ConfigLoader:
     @staticmethod
     def _load_json(path: Path) -> AppConfig:
         """Load JSON configuration."""
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
 
         if not isinstance(data, dict):
@@ -176,7 +175,7 @@ class ConfigLoader:
             json.dump(config.to_dict(), f, indent=2)
 
 
-def find_config_file(explicit_path: Optional[str] = None) -> Optional[Path]:
+def find_config_file(explicit_path: str | None = None) -> Path | None:
     """
     Find configuration file.
 
@@ -191,7 +190,7 @@ def find_config_file(explicit_path: Optional[str] = None) -> Optional[Path]:
     return ConfigLoader.find_config_file(explicit_path)
 
 
-def load_config(path: Optional[Path] = None) -> Optional[AppConfig]:
+def load_config(path: Path | None = None) -> AppConfig | None:
     """
     Load configuration from file.
 

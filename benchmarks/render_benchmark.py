@@ -5,15 +5,15 @@ Rendering performance benchmark suite.
 Measures frame render times across different quality levels.
 """
 
-import time
 import sys
+import time
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.renderer import Raymarcher, Camera, ASCIIShader, QualityLevel
 from src.model import CharacterHead
+from src.renderer import ASCIIShader, Camera, QualityLevel, Raymarcher
 
 
 def benchmark_quality_level(quality: QualityLevel, num_frames: int = 10) -> dict:
@@ -52,7 +52,7 @@ def benchmark_quality_level(quality: QualityLevel, num_frames: int = 10) -> dict
         sdf = head.get_sdf()
 
         start = time.perf_counter()
-        frame = raymarcher.render_frame(sdf)
+        _ = raymarcher.render_frame(sdf)
         end = time.perf_counter()
 
         elapsed = end - start
@@ -84,8 +84,8 @@ def run_benchmark_suite():
     print("=" * 60)
     print("Liquid ASCII Rendering Benchmark")
     print("=" * 60)
-    print(f"Resolution: 80x40 characters")
-    print(f"Frames per quality level: 10")
+    print("Resolution: 80x40 characters")
+    print("Frames per quality level: 10")
     print()
 
     qualities = [
@@ -151,7 +151,7 @@ def run_benchmark_suite():
         print("⚠ Use LOW quality to achieve target 15 FPS")
     else:
         print("⚠ Performance is below target even at LOW quality")
-        print(f"  Consider reducing resolution or using --quality auto for adaptive quality")
+        print("  Consider reducing resolution or using --quality auto for adaptive quality")
 
     print()
 

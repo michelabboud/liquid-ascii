@@ -5,7 +5,6 @@ Save and load configuration presets.
 
 import json
 from pathlib import Path
-from typing import List, Optional, Dict, Any
 
 from .schema import AppConfig
 
@@ -17,7 +16,7 @@ class PresetManager:
     Presets are stored in ~/.config/liquid-ascii/presets/
     """
 
-    def __init__(self, presets_dir: Optional[Path] = None):
+    def __init__(self, presets_dir: Path | None = None):
         """
         Initialize preset manager.
 
@@ -33,7 +32,7 @@ class PresetManager:
         # Create directory if it doesn't exist
         self.presets_dir.mkdir(parents=True, exist_ok=True)
 
-    def save(self, name: str, config: AppConfig, description: Optional[str] = None):
+    def save(self, name: str, config: AppConfig, description: str | None = None):
         """
         Save a configuration preset.
 
@@ -80,12 +79,12 @@ class PresetManager:
         if not preset_path.exists():
             raise FileNotFoundError(f"Preset not found: {name}")
 
-        with open(preset_path, "r", encoding="utf-8") as f:
+        with open(preset_path, encoding="utf-8") as f:
             preset_data = json.load(f)
 
         return AppConfig.from_dict(preset_data["config"])
 
-    def list(self) -> List[Dict[str, str]]:
+    def list(self) -> list[dict[str, str]]:
         """
         List available presets.
 
@@ -96,7 +95,7 @@ class PresetManager:
 
         for preset_file in self.presets_dir.glob("*.json"):
             try:
-                with open(preset_file, "r", encoding="utf-8") as f:
+                with open(preset_file, encoding="utf-8") as f:
                     preset_data = json.load(f)
 
                 presets.append(
@@ -144,7 +143,7 @@ class PresetManager:
 
 # Convenience functions using default preset manager
 
-_default_manager: Optional[PresetManager] = None
+_default_manager: PresetManager | None = None
 
 
 def _get_default_manager() -> PresetManager:
@@ -155,7 +154,7 @@ def _get_default_manager() -> PresetManager:
     return _default_manager
 
 
-def save_preset(name: str, config: AppConfig, description: Optional[str] = None):
+def save_preset(name: str, config: AppConfig, description: str | None = None):
     """
     Save a configuration preset.
 
@@ -182,7 +181,7 @@ def load_preset(name: str) -> AppConfig:
     return manager.load(name)
 
 
-def list_presets() -> List[Dict[str, str]]:
+def list_presets() -> list[dict[str, str]]:
     """
     List available presets.
 

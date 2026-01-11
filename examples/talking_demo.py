@@ -10,16 +10,16 @@ Full demonstration with:
 Requires: edge-tts, sounddevice, scipy
 """
 
-import sys
 import asyncio
 import os
+import sys
 
 sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
-from src.renderer import Raymarcher, Camera, ASCIIShader
+from src.audio import AudioPlayer, EdgeTTSEngine, LipSyncGenerator
 from src.model import Head
 from src.model.visemes import VisemeController
-from src.audio import EdgeTTSEngine, AudioPlayer, LipSyncGenerator
+from src.renderer import ASCIIShader, Camera, Raymarcher
 
 
 async def main():

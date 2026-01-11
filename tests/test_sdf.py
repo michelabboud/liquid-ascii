@@ -1,19 +1,21 @@
 """Tests for SDF primitives and operations."""
 
-import pytest
-import numpy as np
 import sys
+
+import numpy as np
+import pytest
+
 sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
 from src.renderer.sdf import (
-    sdf_sphere,
-    sdf_ellipsoid,
-    sdf_box,
-    sdf_smooth_union,
-    sdf_smooth_subtraction,
+    compute_normal,
     length,
     normalize,
-    compute_normal,
+    sdf_box,
+    sdf_ellipsoid,
+    sdf_smooth_subtraction,
+    sdf_smooth_union,
+    sdf_sphere,
 )
 
 

@@ -7,7 +7,6 @@ This module defines mouth shapes that correspond to different sounds.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class Viseme(Enum):
@@ -63,7 +62,7 @@ class VisemeShape:
 
 
 # Viseme shape definitions
-VISEME_SHAPES: Dict[Viseme, VisemeShape] = {
+VISEME_SHAPES: dict[Viseme, VisemeShape] = {
     Viseme.X: VisemeShape(
         mouth_openness=0.05,
         mouth_width=0.5,
@@ -156,7 +155,7 @@ VISEME_SHAPES: Dict[Viseme, VisemeShape] = {
 
 
 # Phoneme to viseme mapping (common English phonemes)
-PHONEME_TO_VISEME: Dict[str, Viseme] = {
+PHONEME_TO_VISEME: dict[str, Viseme] = {
     # Silence
     "sil": Viseme.X,
     "sp": Viseme.X,
@@ -221,7 +220,7 @@ PHONEME_TO_VISEME: Dict[str, Viseme] = {
 }
 
 # Rhubarb lip sync output to viseme mapping
-RHUBARB_TO_VISEME: Dict[str, Viseme] = {
+RHUBARB_TO_VISEME: dict[str, Viseme] = {
     "X": Viseme.X,
     "A": Viseme.B,  # Rhubarb A = closed mouth (m, b, p)
     "B": Viseme.A,  # Rhubarb B = open mouth (vowels)
@@ -266,13 +265,13 @@ class VisemeController:
         self.transition_time = transition_time
         self.idle_viseme = idle_viseme
 
-        self.cues: List[VisemeCue] = []
+        self.cues: list[VisemeCue] = []
         self.current_shape = VISEME_SHAPES[idle_viseme]
         self.target_shape = VISEME_SHAPES[idle_viseme]
         self.current_viseme = idle_viseme
         self._transition_progress = 1.0
 
-    def load_cues(self, cues: List[VisemeCue]):
+    def load_cues(self, cues: list[VisemeCue]):
         """Load a sequence of viseme cues."""
         self.cues = sorted(cues, key=lambda c: c.start_time)
 
@@ -357,7 +356,7 @@ def simple_text_to_visemes(
     text: str,
     duration: float,
     words_per_minute: float = 150.0,
-) -> List[VisemeCue]:
+) -> list[VisemeCue]:
     """
     Generate approximate viseme cues from text without TTS.
 

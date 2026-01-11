@@ -5,11 +5,12 @@ Based on Inigo Quilez's SDF functions: https://iquilezles.org/articles/distfunct
 These functions form the building blocks for 3D shape composition.
 """
 
+from typing import Union
+
 import numpy as np
-from typing import Union, Tuple
 
 # Type aliases for clarity
-Vec3 = Union[np.ndarray, Tuple[float, float, float]]
+Vec3 = Union[np.ndarray, tuple[float, float, float]]
 
 
 def _to_array(v: Vec3) -> np.ndarray:
@@ -41,10 +42,10 @@ def length_vec(v: np.ndarray) -> np.ndarray:
 def normalize(v: Vec3) -> np.ndarray:
     """Normalize a vector to unit length."""
     v = _to_array(v)
-    l = length(v)
-    if l < 1e-10:
+    vec_length = length(v)
+    if vec_length < 1e-10:
         return np.zeros_like(v)
-    return v / l
+    return v / vec_length
 
 
 # =============================================================================

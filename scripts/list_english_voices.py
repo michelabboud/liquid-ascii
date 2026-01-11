@@ -3,6 +3,7 @@
 
 import asyncio
 import sys
+
 sys.path.insert(0, ".")
 
 try:
@@ -48,9 +49,6 @@ async def main():
             gender = voice['Gender']
             short_name = voice['ShortName']
             friendly_name = voice.get('FriendlyName', short_name)
-
-            # Extract just the voice name (last part)
-            voice_name = short_name.split('-')[-1]
 
             gender_icon = "♂" if gender == "Male" else "♀"
 

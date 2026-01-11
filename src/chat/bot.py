@@ -4,13 +4,11 @@ Chat bot controller for interactive conversations.
 Integrates personality, memory, and LLM backend for character-based chat.
 """
 
-from typing import Optional, AsyncIterator
-import asyncio
-import re
+from collections.abc import AsyncIterator
 
-from .personality import get_personality, get_system_prompt
-from .memory import ConversationMemory
 from .llm import LLMBackend, create_llm_backend
+from .memory import ConversationMemory
+from .personality import get_personality, get_system_prompt
 
 
 class ChatBot:
@@ -24,8 +22,8 @@ class ChatBot:
     def __init__(
         self,
         character_name: str = "default",
-        llm_backend: Optional[LLMBackend] = None,
-        memory: Optional[ConversationMemory] = None,
+        llm_backend: LLMBackend | None = None,
+        memory: ConversationMemory | None = None,
         temperature: float = 0.7,
         max_tokens: int = 500,
     ):
@@ -238,7 +236,7 @@ class ChatSession:
         self,
         character_name: str = "default",
         backend_type: str = "ollama",
-        backend_kwargs: Optional[dict] = None,
+        backend_kwargs: dict | None = None,
     ):
         """
         Initialize chat session.
@@ -253,7 +251,7 @@ class ChatSession:
         try:
             llm_backend = create_llm_backend(backend_type, **backend_kwargs)
         except Exception as e:
-            raise Exception(f"Failed to create LLM backend: {e}")
+            raise Exception(f"Failed to create LLM backend: {e}") from e
 
         self.bot = ChatBot(character_name=character_name, llm_backend=llm_backend)
         self.current_expression = "neutral"

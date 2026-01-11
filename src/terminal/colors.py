@@ -7,7 +7,6 @@ Supports rainbow effects, custom color schemes, and terminal color modes.
 import math
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 from enum import Enum
 
 
@@ -18,7 +17,7 @@ class RGB:
     g: int
     b: int
 
-    def to_tuple(self) -> Tuple[int, int, int]:
+    def to_tuple(self) -> tuple[int, int, int]:
         return (self.r, self.g, self.b)
 
     def lerp(self, other: "RGB", t: float) -> "RGB":
@@ -53,7 +52,7 @@ class ColorScheme:
     eye_color: RGB         # Eyeball color
     pupil_color: RGB       # Pupil color
     mouth_color: RGB       # Inside mouth
-    background: Optional[RGB] = None
+    background: RGB | None = None
 
     def get_surface_color(self, intensity: float) -> RGB:
         """Get color for a surface point based on lighting intensity."""
@@ -66,7 +65,7 @@ class ColorScheme:
 
 
 # Preset color schemes
-PRESET_SCHEMES: Dict[str, ColorScheme] = {
+PRESET_SCHEMES: dict[str, ColorScheme] = {
     "default": ColorScheme(
         name="default",
         base=RGB(200, 180, 160),
@@ -191,7 +190,7 @@ class RainbowColors:
         self,
         x: float = 0.0,
         y: float = 0.0,
-        t: Optional[float] = None,
+        t: float | None = None,
     ) -> RGB:
         """
         Get rainbow color for a position.
@@ -291,7 +290,7 @@ class GradientColors:
     Gradient color effects between multiple colors.
     """
 
-    def __init__(self, colors: List[RGB], direction: str = "vertical"):
+    def __init__(self, colors: list[RGB], direction: str = "vertical"):
         """
         Initialize gradient.
 

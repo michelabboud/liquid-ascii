@@ -1,19 +1,21 @@
 """Tests for animation system."""
 
-import pytest
 import sys
+
+import pytest
+
 sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
 from src.model.animation import (
-    smoothstep,
-    smootherstep,
-    lerp,
-    ease_in,
-    ease_out,
-    ease_in_out,
-    organic_noise,
-    blink_pattern,
     AnimationController,
+    blink_pattern,
+    ease_in,
+    ease_in_out,
+    ease_out,
+    lerp,
+    organic_noise,
+    smootherstep,
+    smoothstep,
 )
 
 

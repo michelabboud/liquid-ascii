@@ -1,8 +1,8 @@
 """Audio package - TTS, lip sync, and playback"""
 
-from .tts import TTSEngine, EdgeTTSEngine
-from .player import AudioPlayer
 from .lipsync import LipSyncGenerator, estimate_speech_duration
+from .player import AudioPlayer
+from .tts import EdgeTTSEngine, TTSEngine
 
 __all__ = [
     "TTSEngine",

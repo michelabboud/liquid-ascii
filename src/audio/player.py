@@ -7,9 +7,9 @@ accurate position tracking.
 
 import threading
 import time
-from pathlib import Path
-from typing import Callable, Optional
+from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
@@ -33,13 +33,13 @@ class AudioPlayer:
 
     def __init__(self):
         """Initialize the audio player."""
-        self._audio_data: Optional[np.ndarray] = None
+        self._audio_data: np.ndarray | None = None
         self._sample_rate: int = 44100
         self._state = PlaybackState()
         self._position_lock = threading.Lock()
         self._stream = None
         self._frame_index = 0
-        self._on_complete: Optional[Callable] = None
+        self._on_complete: Callable | None = None
 
     def load_file(self, file_path: Path) -> float:
         """
@@ -90,9 +90,10 @@ class AudioPlayer:
 
         # Fallback: use scipy with ffmpeg if available
         try:
-            from scipy.io import wavfile
             import subprocess
             import tempfile
+
+            from scipy.io import wavfile
 
             # Convert to WAV using ffmpeg
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
@@ -109,7 +110,7 @@ class AudioPlayer:
             return data.astype(np.float32) / 32768.0, sr
 
         except Exception as e:
-            raise RuntimeError(f"Could not load MP3 file: {e}. Install soundfile or ffmpeg.")
+            raise RuntimeError(f"Could not load MP3 file: {e}. Install soundfile or ffmpeg.") from e
 
     def _load_wav(self, file_path: Path) -> tuple:
         """Load WAV file."""
@@ -168,7 +169,7 @@ class AudioPlayer:
             self._frame_index = end
             self._state.position = self._frame_index / self._sample_rate
 
-    def play(self, on_complete: Optional[Callable] = None):
+    def play(self, on_complete: Callable | None = None):
         """
         Start audio playback.
 
@@ -270,7 +271,7 @@ class SyncAudioPlayer:
 
     def __init__(self):
         """Initialize player."""
-        self._start_time: Optional[float] = None
+        self._start_time: float | None = None
         self._duration: float = 0.0
         self._is_playing: bool = False
 

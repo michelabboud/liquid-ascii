@@ -4,10 +4,9 @@ Conversation memory system for chat mode.
 Manages chat history, context window, and memory persistence.
 """
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional
-import json
 
 
 @dataclass
@@ -60,14 +59,14 @@ class ConversationMemory:
         """
         self.max_messages = max_messages
         self.context_window = context_window
-        self.messages: List[Message] = []
-        self.system_message: Optional[Message] = None
+        self.messages: list[Message] = []
+        self.system_message: Message | None = None
 
     def set_system_message(self, content: str):
         """Set or update the system message."""
         self.system_message = Message(role="system", content=content)
 
-    def add_message(self, role: str, content: str, metadata: Optional[dict] = None):
+    def add_message(self, role: str, content: str, metadata: dict | None = None):
         """
         Add a message to conversation history.
 
@@ -87,15 +86,15 @@ class ConversationMemory:
             else:
                 self.messages = self.messages[-self.max_messages :]
 
-    def add_user_message(self, content: str, metadata: Optional[dict] = None):
+    def add_user_message(self, content: str, metadata: dict | None = None):
         """Add a user message."""
         self.add_message("user", content, metadata)
 
-    def add_assistant_message(self, content: str, metadata: Optional[dict] = None):
+    def add_assistant_message(self, content: str, metadata: dict | None = None):
         """Add an assistant message."""
         self.add_message("assistant", content, metadata)
 
-    def get_context(self, include_system: bool = True) -> List[Message]:
+    def get_context(self, include_system: bool = True) -> list[Message]:
         """
         Get recent context window for LLM.
 
@@ -114,11 +113,11 @@ class ConversationMemory:
 
         return recent
 
-    def get_all_messages(self) -> List[Message]:
+    def get_all_messages(self) -> list[Message]:
         """Get all messages in conversation."""
         return self.messages.copy()
 
-    def get_last_message(self) -> Optional[Message]:
+    def get_last_message(self) -> Message | None:
         """Get the last message in conversation."""
         return self.messages[-1] if self.messages else None
 
@@ -163,7 +162,7 @@ class ConversationMemory:
     @classmethod
     def load_from_file(cls, filepath: str) -> "ConversationMemory":
         """Load conversation from JSON file."""
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             data = json.load(f)
         return cls.from_dict(data)
 
@@ -180,7 +179,7 @@ class ConversationMemory:
             "has_system_message": self.system_message is not None,
         }
 
-    def format_for_llm(self, include_system: bool = True) -> List[dict]:
+    def format_for_llm(self, include_system: bool = True) -> list[dict]:
         """
         Format messages for LLM API (OpenAI/Ollama format).
 
@@ -204,7 +203,7 @@ class MemoryManager:
     def __init__(self):
         """Initialize memory manager."""
         self.memories: dict[str, ConversationMemory] = {}
-        self.current_name: Optional[str] = None
+        self.current_name: str | None = None
 
     def create_memory(
         self, name: str, max_messages: int = 50, context_window: int = 20
@@ -226,7 +225,7 @@ class MemoryManager:
             self.current_name = name
         return memory
 
-    def switch_memory(self, name: str) -> Optional[ConversationMemory]:
+    def switch_memory(self, name: str) -> ConversationMemory | None:
         """
         Switch to a different conversation memory.
 
@@ -241,7 +240,7 @@ class MemoryManager:
             return self.memories[name]
         return None
 
-    def get_current_memory(self) -> Optional[ConversationMemory]:
+    def get_current_memory(self) -> ConversationMemory | None:
         """Get current active memory."""
         if self.current_name and self.current_name in self.memories:
             return self.memories[self.current_name]
@@ -254,6 +253,6 @@ class MemoryManager:
             if self.current_name == name:
                 self.current_name = list(self.memories.keys())[0] if self.memories else None
 
-    def list_memories(self) -> List[str]:
+    def list_memories(self) -> list[str]:
         """List all memory names."""
         return list(self.memories.keys())

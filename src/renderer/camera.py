@@ -4,9 +4,10 @@ Camera system for 3D to 2D projection.
 Handles view transformation and ray generation for raymarching.
 """
 
+
 import numpy as np
-from typing import Tuple
-from .sdf import normalize, _to_array, Vec3
+
+from .sdf import Vec3, _to_array, normalize
 
 
 class Camera:
@@ -90,7 +91,7 @@ class Camera:
         self.position = self.target + np.array([x, y, z])
         self._update_basis()
 
-    def get_ray(self, u: float, v: float) -> Tuple[np.ndarray, np.ndarray]:
+    def get_ray(self, u: float, v: float) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate a ray for normalized screen coordinates.
 
@@ -112,7 +113,7 @@ class Camera:
 
         return self.position.copy(), direction
 
-    def get_rays_batch(self, width: int, height: int) -> Tuple[np.ndarray, np.ndarray]:
+    def get_rays_batch(self, width: int, height: int) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate rays for all pixels in a grid.
 
@@ -153,7 +154,7 @@ def project_point(
     camera_pos: Vec3 = (0, 0, -3),
     k1: float = 30,
     k2: float = 5
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """
     Simple perspective projection (donut.c style).
 

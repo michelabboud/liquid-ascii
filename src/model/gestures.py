@@ -4,11 +4,11 @@ Gesture animations for the character head.
 Provides high-level gestures like nodding, shaking, tilting, and idle behaviors.
 """
 
-import time
 import math
+import time
 from dataclasses import dataclass
-from typing import Tuple, Optional
-from .animation import ease_in_out, ease_in, ease_out
+
+from .animation import ease_in_out, ease_out
 
 
 @dataclass
@@ -39,7 +39,7 @@ class GestureController:
 
     def __init__(self):
         """Initialize gesture controller."""
-        self.current_gesture: Optional[GestureState] = None
+        self.current_gesture: GestureState | None = None
         self.idle_behavior_enabled = False
         self.idle_time = 0.0
         self.next_idle_action = 5.0  # Time until next idle behavior
@@ -117,7 +117,7 @@ class GestureController:
             self.idle_time = 0.0
             self.next_idle_action = 5.0 + (time.time() % 5.0)
 
-    def update(self, dt: float) -> Tuple[float, float, float, float, float]:
+    def update(self, dt: float) -> tuple[float, float, float, float, float]:
         """
         Update gesture state and return head transformations.
 
@@ -153,7 +153,7 @@ class GestureController:
 
     def _evaluate_gesture(
         self, gesture: GestureState, progress: float
-    ) -> Tuple[float, float, float, float, float]:
+    ) -> tuple[float, float, float, float, float]:
         """
         Evaluate gesture at given progress.
 
@@ -173,7 +173,7 @@ class GestureController:
 
     def _evaluate_nod(
         self, gesture: GestureState, progress: float
-    ) -> Tuple[float, float, float, float, float]:
+    ) -> tuple[float, float, float, float, float]:
         """Evaluate nodding gesture."""
         intensity = gesture.params["intensity"]
 
@@ -189,7 +189,7 @@ class GestureController:
 
     def _evaluate_shake(
         self, gesture: GestureState, progress: float
-    ) -> Tuple[float, float, float, float, float]:
+    ) -> tuple[float, float, float, float, float]:
         """Evaluate shaking gesture."""
         intensity = gesture.params["intensity"]
 
@@ -205,7 +205,7 @@ class GestureController:
 
     def _evaluate_tilt(
         self, gesture: GestureState, progress: float
-    ) -> Tuple[float, float, float, float, float]:
+    ) -> tuple[float, float, float, float, float]:
         """Evaluate head tilt gesture."""
         intensity = gesture.params["intensity"]
         direction = gesture.params["direction"]
@@ -233,7 +233,7 @@ class GestureController:
 
     def _evaluate_look_at(
         self, gesture: GestureState, progress: float
-    ) -> Tuple[float, float, float, float, float]:
+    ) -> tuple[float, float, float, float, float]:
         """Evaluate look-at gesture (eye tracking)."""
         target_x = gesture.params["target_x"]
         target_y = gesture.params["target_y"]

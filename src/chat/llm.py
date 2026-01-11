@@ -7,10 +7,10 @@ Supports multiple LLM providers:
 - Extensible for other providers
 """
 
-from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, AsyncIterator
 import json
-import asyncio
+from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
+
 import aiohttp
 
 
@@ -19,7 +19,7 @@ class LLMBackend(ABC):
 
     @abstractmethod
     async def generate(
-        self, messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
+        self, messages: list[dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
     ) -> str:
         """
         Generate a response from the LLM.
@@ -36,7 +36,7 @@ class LLMBackend(ABC):
 
     @abstractmethod
     async def stream_generate(
-        self, messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
+        self, messages: list[dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
     ) -> AsyncIterator[str]:
         """
         Stream response tokens from the LLM.
@@ -79,7 +79,7 @@ class OllamaBackend(LLMBackend):
         self.api_url = f"{base_url}/api"
 
     async def generate(
-        self, messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
+        self, messages: list[dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
     ) -> str:
         """Generate response using Ollama."""
         url = f"{self.api_url}/chat"
@@ -100,13 +100,13 @@ class OllamaBackend(LLMBackend):
                     else:
                         error_text = await response.text()
                         raise Exception(f"Ollama API error: {response.status} - {error_text}")
-            except asyncio.TimeoutError:
-                raise Exception("Ollama request timed out")
-            except aiohttp.ClientConnectorError:
-                raise Exception("Cannot connect to Ollama. Is it running?")
+            except TimeoutError as e:
+                raise Exception("Ollama request timed out") from e
+            except aiohttp.ClientConnectorError as e:
+                raise Exception("Cannot connect to Ollama. Is it running?") from e
 
     async def stream_generate(
-        self, messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
+        self, messages: list[dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
     ) -> AsyncIterator[str]:
         """Stream response using Ollama."""
         url = f"{self.api_url}/chat"
@@ -135,8 +135,8 @@ class OllamaBackend(LLMBackend):
                                         yield content
                             except json.JSONDecodeError:
                                 continue
-            except aiohttp.ClientConnectorError:
-                raise Exception("Cannot connect to Ollama. Is it running?")
+            except aiohttp.ClientConnectorError as e:
+                raise Exception("Cannot connect to Ollama. Is it running?") from e
 
     def is_available(self) -> bool:
         """Check if Ollama is available."""
@@ -156,7 +156,7 @@ class OpenAIBackend(LLMBackend):
     Requires OpenAI API key in environment variable OPENAI_API_KEY.
     """
 
-    def __init__(self, model: str = "gpt-4o-mini", api_key: Optional[str] = None):
+    def __init__(self, model: str = "gpt-4o-mini", api_key: str | None = None):
         """
         Initialize OpenAI backend.
 
@@ -173,7 +173,7 @@ class OpenAIBackend(LLMBackend):
         self.base_url = "https://api.openai.com/v1"
 
     async def generate(
-        self, messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
+        self, messages: list[dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
     ) -> str:
         """Generate response using OpenAI API."""
         url = f"{self.base_url}/chat/completions"
@@ -198,11 +198,11 @@ class OpenAIBackend(LLMBackend):
                     else:
                         error_text = await response.text()
                         raise Exception(f"OpenAI API error: {response.status} - {error_text}")
-            except asyncio.TimeoutError:
-                raise Exception("OpenAI request timed out")
+            except TimeoutError as e:
+                raise Exception("OpenAI request timed out") from e
 
     async def stream_generate(
-        self, messages: List[Dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
+        self, messages: list[dict[str, str]], temperature: float = 0.7, max_tokens: int = 500
     ) -> AsyncIterator[str]:
         """Stream response using OpenAI API."""
         url = f"{self.base_url}/chat/completions"
@@ -217,30 +217,29 @@ class OpenAIBackend(LLMBackend):
             "stream": True,
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=120)
-            ) as response:
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise Exception(f"OpenAI API error: {response.status} - {error_text}")
+        async with aiohttp.ClientSession() as session, session.post(
+            url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=120)
+        ) as response:
+            if response.status != 200:
+                error_text = await response.text()
+                raise Exception(f"OpenAI API error: {response.status} - {error_text}")
 
-                async for line in response.content:
-                    if line:
-                        line_text = line.decode("utf-8").strip()
-                        if line_text.startswith("data: "):
-                            data_text = line_text[6:]  # Remove "data: " prefix
-                            if data_text == "[DONE]":
-                                break
-                            try:
-                                data = json.loads(data_text)
-                                if "choices" in data and len(data["choices"]) > 0:
-                                    delta = data["choices"][0].get("delta", {})
-                                    content = delta.get("content", "")
-                                    if content:
-                                        yield content
-                            except json.JSONDecodeError:
-                                continue
+            async for line in response.content:
+                if line:
+                    line_text = line.decode("utf-8").strip()
+                    if line_text.startswith("data: "):
+                        data_text = line_text[6:]  # Remove "data: " prefix
+                        if data_text == "[DONE]":
+                            break
+                        try:
+                            data = json.loads(data_text)
+                            if "choices" in data and len(data["choices"]) > 0:
+                                delta = data["choices"][0].get("delta", {})
+                                content = delta.get("content", "")
+                                if content:
+                                    yield content
+                        except json.JSONDecodeError:
+                            continue
 
     def is_available(self) -> bool:
         """Check if OpenAI API is configured."""
@@ -269,7 +268,7 @@ def create_llm_backend(backend_type: str = "ollama", **kwargs) -> LLMBackend:
         raise ValueError(f"Unknown backend type: {backend_type}")
 
 
-def list_available_backends() -> List[str]:
+def list_available_backends() -> list[str]:
     """
     List currently available backends.
 

@@ -10,14 +10,14 @@ Shows a head with idle animation including:
 Press Ctrl+C to exit.
 """
 
+import os
 import sys
 import time
-import os
 
 sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
 
-from src.renderer import Raymarcher, Camera, ASCIIShader
 from src.model import Head
+from src.renderer import ASCIIShader, Camera, Raymarcher
 
 
 def main():

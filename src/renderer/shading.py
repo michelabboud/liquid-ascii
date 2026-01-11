@@ -5,10 +5,10 @@ Maps lighting calculations to appropriate ASCII characters to create
 the illusion of 3D surfaces in text.
 """
 
-import numpy as np
-from typing import Optional, Tuple
-from .sdf import normalize, _to_array, Vec3
 
+import numpy as np
+
+from .sdf import Vec3, _to_array, normalize
 
 # Various ASCII luminance ramps (dark to bright)
 RAMPS = {
@@ -30,7 +30,7 @@ class ASCIIShader:
     def __init__(
         self,
         ramp: str = "standard",
-        custom_ramp: Optional[str] = None,
+        custom_ramp: str | None = None,
         light_direction: Vec3 = (0.5, 0.8, -0.6),
         ambient: float = 0.1,
         diffuse: float = 0.7,
@@ -69,7 +69,7 @@ class ASCIIShader:
     def compute_lighting(
         self,
         normal: Vec3,
-        view_dir: Optional[Vec3] = None
+        view_dir: Vec3 | None = None
     ) -> float:
         """
         Compute lighting intensity at a surface point.
@@ -106,7 +106,7 @@ class ASCIIShader:
     def compute_lighting_batch(
         self,
         normals: np.ndarray,
-        view_dirs: Optional[np.ndarray] = None
+        view_dirs: np.ndarray | None = None
     ) -> np.ndarray:
         """
         Vectorized lighting computation for all pixels.
@@ -199,9 +199,9 @@ class ColorASCIIShader(ASCIIShader):
     def __init__(
         self,
         *args,
-        base_color: Tuple[int, int, int] = (200, 180, 160),  # Skin tone
-        highlight_color: Tuple[int, int, int] = (255, 255, 240),
-        shadow_color: Tuple[int, int, int] = (80, 60, 50),
+        base_color: tuple[int, int, int] = (200, 180, 160),  # Skin tone
+        highlight_color: tuple[int, int, int] = (255, 255, 240),
+        shadow_color: tuple[int, int, int] = (80, 60, 50),
         **kwargs
     ):
         """
@@ -218,7 +218,7 @@ class ColorASCIIShader(ASCIIShader):
         self.highlight_color = np.array(highlight_color)
         self.shadow_color = np.array(shadow_color)
 
-    def compute_color(self, intensity: float) -> Tuple[int, int, int]:
+    def compute_color(self, intensity: float) -> tuple[int, int, int]:
         """
         Compute RGB color based on lighting intensity.
 
