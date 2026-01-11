@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "liquid-ascii"
-version = "0.3.0"
+version = "0.3.1"
 description = "Terminal-based ASCII art animation with liquid 3D rendering, gestures, and lip sync"
 readme = "README.md"
 requires-python = ">=3.11"

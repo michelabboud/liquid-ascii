@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-01-11
+
+### Fixed
+- **AttributeError crash** when `--duration` timer expires
+  - Fixed `'NoneType' object has no attribute 'split'` error
+  - `display.run_loop()` now checks for `None` before rendering
+  - Demo mode exits cleanly after duration expires
+- **Pip detection** in `check_prereqs.sh`
+  - Now correctly detects `uv pip` in uv-created venvs
+  - Shows "Available (uv pip)" when using uv
+  - Falls back to `python3 -m pip` if uv not found
+
+### Added
+- **`--duration` / `-d` flag** for timed demo runs
+  - Specify duration in seconds (e.g., `--duration 10`)
+  - Demo mode stops automatically when time expires
+  - Used by demo scripts internally
+
+### Technical Details
+- Fixed render loop to handle `None` return from update function
+- Smart pip detection checks `uv pip` first, then standard pip
+- Duration tracking with elapsed time counter in demo mode
+
 ## [0.3.0] - 2026-01-11
 
 ### Added - Demo System
