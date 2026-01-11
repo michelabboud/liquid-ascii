@@ -8,6 +8,7 @@ morphing between expressions and mouth shapes.
 import math
 from collections.abc import Callable
 from dataclasses import dataclass
+from enum import Enum
 
 import numpy as np
 
@@ -21,6 +22,15 @@ from ..renderer.sdf import (
 )
 from .animation import blink_pattern, breathing_motion, organic_noise
 from .expressions import Expression, ExpressionManager
+
+
+class FacialFeature(Enum):
+    """Types of facial features for color coding."""
+
+    SKIN = "skin"
+    EYE = "eye"
+    PUPIL = "pupil"
+    MOUTH = "mouth"
 
 
 @dataclass
@@ -377,6 +387,86 @@ class Head:
             return dist, False
 
         return sdf_with_pupils
+
+    def get_sdf_with_features(self) -> Callable[[Vec3], tuple[float, FacialFeature]]:
+        """
+        Get SDF function that identifies facial features for coloring.
+
+        Returns:
+            Function returning (distance, feature_type) tuple
+        """
+        g = self.geometry
+        s = self.state
+        base_sdf = self.get_sdf()
+
+        eye_look_offset_x = s.eye_look_x * 0.03
+        eye_look_offset_y = s.eye_look_y * 0.03
+
+        # Eye positions
+        eyeball_l_pos = np.array(
+            [
+                -g.eye_separation + eye_look_offset_x,
+                g.eye_height + eye_look_offset_y,
+                g.eye_depth + 0.05,
+            ]
+        )
+        eyeball_r_pos = np.array(
+            [
+                g.eye_separation + eye_look_offset_x,
+                g.eye_height + eye_look_offset_y,
+                g.eye_depth + 0.05,
+            ]
+        )
+
+        # Pupil positions
+        pupil_l_pos = np.array(
+            [
+                -g.eye_separation + eye_look_offset_x,
+                g.eye_height + eye_look_offset_y,
+                g.eye_depth + 0.1,
+            ]
+        )
+        pupil_r_pos = np.array(
+            [
+                g.eye_separation + eye_look_offset_x,
+                g.eye_height + eye_look_offset_y,
+                g.eye_depth + 0.1,
+            ]
+        )
+
+        # Mouth position
+        mouth_pos = np.array([0, g.mouth_y, g.mouth_depth])
+
+        def sdf_with_features(point: Vec3) -> tuple[float, FacialFeature]:
+            p = _to_array(point)
+            dist = base_sdf(point)
+
+            # Only check features near surface
+            if dist < 0.05:
+                # Check pupils first (most specific)
+                dist_to_pupil_l = np.linalg.norm(p - pupil_l_pos)
+                dist_to_pupil_r = np.linalg.norm(p - pupil_r_pos)
+                if min(dist_to_pupil_l, dist_to_pupil_r) < g.pupil_radius:
+                    return dist, FacialFeature.PUPIL
+
+                # Check eyeballs
+                eyeball_scale = 1.0 - s.blink_amount * 0.8
+                if eyeball_scale > 0.1:
+                    dist_to_eye_l = np.linalg.norm(p - eyeball_l_pos)
+                    dist_to_eye_r = np.linalg.norm(p - eyeball_r_pos)
+                    actual_eyeball_radius = g.eyeball_radius * eyeball_scale
+                    if min(dist_to_eye_l, dist_to_eye_r) < actual_eyeball_radius + 0.05:
+                        return dist, FacialFeature.EYE
+
+                # Check mouth
+                dist_to_mouth = np.linalg.norm(p - mouth_pos)
+                mouth_radius = 0.35  # Approximate mouth region
+                if dist_to_mouth < mouth_radius:
+                    return dist, FacialFeature.MOUTH
+
+            return dist, FacialFeature.SKIN
+
+        return sdf_with_features
 
 
 class CharacterHead(Head):

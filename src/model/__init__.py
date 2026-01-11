@@ -17,7 +17,7 @@ from .gestures import (
     GestureState,
     create_gesture_sequence,
 )
-from .head import CharacterHead, Head, HeadGeometry, HeadState
+from .head import CharacterHead, FacialFeature, Head, HeadGeometry, HeadState
 from .visemes import VISEME_SHAPES, Viseme, VisemeController
 
 __all__ = [
@@ -36,6 +36,7 @@ __all__ = [
     "HeadState",
     "CharacterHead",
     "HeadGeometry",
+    "FacialFeature",
     "Expression",
     "ExpressionManager",
     "EXPRESSIONS",

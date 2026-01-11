@@ -246,9 +246,9 @@ def run_demo_mode(
     display = Display(target_fps=fps)
     width, height = display.get_size()
 
-    # Limit size for performance
-    width = min(width, 100)
-    height = min(height, 50)
+    # Limit size for performance (2x larger for better visibility)
+    width = min(width, 200)
+    height = min(height, 100)
 
     head, raymarcher = create_head_renderer(width, height, character, quality)
 
@@ -377,10 +377,10 @@ async def run_speak_mode(
         quality: Rendering quality
     """
 
-    display = Display(target_fps=15.0)
+    display = Display(target_fps=30.0)
     width, height = display.get_size()
-    width = min(width, 100)
-    height = min(height, 50)
+    width = min(width, 200)
+    height = min(height, 100)
 
     head, raymarcher = create_head_renderer(width, height, character, quality)
 
@@ -461,10 +461,10 @@ async def run_tutor_mode(
         expression: Initial expression
         quality: Rendering quality
     """
-    display = Display(target_fps=15.0)
+    display = Display(target_fps=30.0)
     width, height = display.get_size()
-    width = min(width, 100)
-    height = min(height, 50)
+    width = min(width, 200)
+    height = min(height, 100)
 
     head, raymarcher = create_head_renderer(width, height, character, quality)
 
@@ -891,7 +891,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         default=None,
         help="TTS voice name (default: auto-select based on character)",
     )
-    parser.add_argument("--fps", type=float, default=15.0, help="Target FPS (default: 15)")
+    parser.add_argument("--fps", type=float, default=30.0, help="Target FPS (default: 30)")
     parser.add_argument(
         "--quality",
         "-q",
