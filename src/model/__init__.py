@@ -13,6 +13,12 @@ from .animation import (
 from .visemes import Viseme, VisemeController, VISEME_SHAPES
 from .head import Head, HeadState, CharacterHead, HeadGeometry
 from .expressions import Expression, ExpressionManager, EXPRESSIONS
+from .gestures import (
+    GestureController,
+    GestureSequencer,
+    GestureState,
+    create_gesture_sequence,
+)
 
 __all__ = [
     "smoothstep",
@@ -33,4 +39,8 @@ __all__ = [
     "Expression",
     "ExpressionManager",
     "EXPRESSIONS",
+    "GestureController",
+    "GestureSequencer",
+    "GestureState",
+    "create_gesture_sequence",
 ]

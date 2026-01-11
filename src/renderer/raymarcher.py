@@ -10,6 +10,7 @@ from typing import Callable, Optional, Tuple
 from .camera import Camera
 from .shading import ASCIIShader
 from .sdf import compute_normal
+from .quality import QualityPreset, QualityLevel, get_quality_preset
 
 
 # Type alias for SDF functions
@@ -33,6 +34,7 @@ class Raymarcher:
         max_steps: int = 64,
         max_distance: float = 100.0,
         epsilon: float = 0.001,
+        quality: Optional[QualityLevel] = None,
     ):
         """
         Initialize the raymarcher.
@@ -45,14 +47,25 @@ class Raymarcher:
             max_steps: Maximum raymarching iterations
             max_distance: Maximum ray travel distance
             epsilon: Surface hit threshold
+            quality: Quality preset (overrides max_steps, epsilon if provided)
         """
         self.width = width
         self.height = height
         self.camera = camera or Camera()
         self.shader = shader or ASCIIShader()
-        self.max_steps = max_steps
-        self.max_distance = max_distance
-        self.epsilon = epsilon
+
+        # Apply quality preset if provided
+        if quality is not None:
+            preset = get_quality_preset(quality)
+            self.max_steps = preset.max_steps
+            self.max_distance = preset.max_distance
+            self.epsilon = preset.epsilon
+            self._quality_preset = preset
+        else:
+            self.max_steps = max_steps
+            self.max_distance = max_distance
+            self.epsilon = epsilon
+            self._quality_preset = None
 
         # Pre-allocate buffers
         self._hit_buffer = np.zeros((height, width), dtype=bool)
@@ -66,6 +79,19 @@ class Raymarcher:
         self._hit_buffer = np.zeros((height, width), dtype=bool)
         self._distance_buffer = np.zeros((height, width))
         self._normal_buffer = np.zeros((height, width, 3))
+
+    def set_quality(self, quality: QualityLevel):
+        """
+        Update quality settings dynamically.
+
+        Args:
+            quality: New quality level
+        """
+        preset = get_quality_preset(quality)
+        self.max_steps = preset.max_steps
+        self.max_distance = preset.max_distance
+        self.epsilon = preset.epsilon
+        self._quality_preset = preset
 
     def raymarch_single(
         self,

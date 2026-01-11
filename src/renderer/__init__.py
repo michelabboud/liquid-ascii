@@ -15,6 +15,7 @@ from .sdf import (
 from .raymarcher import Raymarcher
 from .shading import ASCIIShader
 from .camera import Camera
+from .quality import QualityLevel, QualityPreset, AdaptiveQualityController, get_quality_preset
 
 __all__ = [
     "sdf_sphere",
@@ -30,4 +31,8 @@ __all__ = [
     "Raymarcher",
     "ASCIIShader",
     "Camera",
+    "QualityLevel",
+    "QualityPreset",
+    "AdaptiveQualityController",
+    "get_quality_preset",
 ]

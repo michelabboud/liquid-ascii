@@ -8,6 +8,15 @@ from .input import (
     InteractiveInputHandler,
     InteractiveController,
 )
+from .effects import (
+    ParticleSystem,
+    MotionTrail,
+    GlitchEffect,
+    ScanlineEffect,
+    MatrixRainEffect,
+    DepthOfFieldEffect,
+    EffectsCompositor,
+)
 
 __all__ = [
     "Display",
@@ -19,4 +28,11 @@ __all__ = [
     "InputEvent",
     "InteractiveInputHandler",
     "InteractiveController",
+    "ParticleSystem",
+    "MotionTrail",
+    "GlitchEffect",
+    "ScanlineEffect",
+    "MatrixRainEffect",
+    "DepthOfFieldEffect",
+    "EffectsCompositor",
 ]

@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from .renderer import Raymarcher, Camera, ASCIIShader
+from .renderer import Raymarcher, Camera, ASCIIShader, QualityLevel, AdaptiveQualityController
 from .model import Head, CharacterHead, AnimationController
 from .model.visemes import VisemeController
 from .terminal import Display, ColorMode, RainbowColors, PRESET_SCHEMES
@@ -23,9 +23,16 @@ def create_head_renderer(
     width: int = 80,
     height: int = 40,
     character: str = "default",
+    quality: str = "high",
 ) -> tuple:
     """
     Create a head model with renderer.
+
+    Args:
+        width: Render width in characters
+        height: Render height in characters
+        character: Character preset name
+        quality: Quality level (low/medium/high/ultra/auto)
 
     Returns:
         (head, raymarcher) tuple
@@ -33,12 +40,16 @@ def create_head_renderer(
     head = CharacterHead(character_name=character)
     camera = Camera(position=(0, 0, -3.5), target=(0, 0, 0))
     shader = ASCIIShader(ramp="standard")
+
+    # Convert quality string to enum
+    quality_level = QualityLevel(quality)
+
     raymarcher = Raymarcher(
         width=width,
         height=height,
         camera=camera,
         shader=shader,
-        max_steps=50,
+        quality=quality_level,
     )
     return head, raymarcher
 
@@ -50,6 +61,7 @@ def run_demo_mode(
     fps: float = 15.0,
     expression: Optional[str] = None,
     interactive: bool = False,
+    quality: str = "high",
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -61,6 +73,7 @@ def run_demo_mode(
         fps: Target frames per second
         expression: Initial expression
         interactive: Enable keyboard controls
+        quality: Quality level (low/medium/high/ultra/auto)
     """
     from .terminal import InteractiveInputHandler, InteractiveController, InputCommand, PRESET_SCHEMES
 
@@ -71,7 +84,7 @@ def run_demo_mode(
     width = min(width, 100)
     height = min(height, 50)
 
-    head, raymarcher = create_head_renderer(width, height, character)
+    head, raymarcher = create_head_renderer(width, height, character, quality)
 
     # Set initial expression if specified
     if expression:
@@ -174,6 +187,7 @@ async def run_speak_mode(
     color_scheme: str = "default",
     voice: str = "en-US-AriaNeural",
     expression: Optional[str] = None,
+    quality: str = "high",
 ):
     """
     Run speaking mode - head speaks given text.
@@ -185,7 +199,7 @@ async def run_speak_mode(
     width = min(width, 100)
     height = min(height, 50)
 
-    head, raymarcher = create_head_renderer(width, height, character)
+    head, raymarcher = create_head_renderer(width, height, character, quality)
 
     # Set initial expression if specified
     if expression:
@@ -246,6 +260,7 @@ async def run_tutor_mode(
     color_scheme: str = "default",
     voice: str = "en-US-AriaNeural",
     expression: Optional[str] = None,
+    quality: str = "high",
 ):
     """
     Run tutor mode - read and explain a text/markdown file.
@@ -255,7 +270,7 @@ async def run_tutor_mode(
     width = min(width, 100)
     height = min(height, 50)
 
-    head, raymarcher = create_head_renderer(width, height, character)
+    head, raymarcher = create_head_renderer(width, height, character, quality)
 
     # Set initial expression if specified
     if expression:
@@ -329,11 +344,15 @@ async def run_tutor_mode(
         tts.cleanup()
 
 
-def run_static_mode(character: str = "default", expression: Optional[str] = None):
+def run_static_mode(
+    character: str = "default",
+    expression: Optional[str] = None,
+    quality: str = "high",
+):
     """
     Render a single static frame (no animation).
     """
-    head, raymarcher = create_head_renderer(80, 40, character)
+    head, raymarcher = create_head_renderer(80, 40, character, quality)
 
     # Set initial expression if specified
     if expression:
@@ -362,7 +381,7 @@ Examples:
   liquid-ascii --rainbow horizontal     # Rainbow colors
   liquid-ascii --scheme neon            # Use neon color scheme
 
-Characters: default, round, tall, wide, robot, cute
+Characters: default, round, tall, wide, robot, cute, alien, cat, dog, baby, elder, skull
 Color schemes: default, pale, dark, robot, alien, ghost, sunset, ocean, neon, monochrome
 Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         """
@@ -382,7 +401,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         "--character", "-c",
         type=str,
         default="default",
-        help="Character preset (default, round, tall, wide, robot, cute)"
+        help="Character preset (default, round, tall, wide, robot, cute, alien, cat, dog, baby, elder, skull)"
     )
     parser.add_argument(
         "--expression", "-e",
@@ -411,6 +430,13 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         type=float,
         default=15.0,
         help="Target FPS (default: 15)"
+    )
+    parser.add_argument(
+        "--quality", "-q",
+        type=str,
+        choices=["low", "medium", "high", "ultra", "auto"],
+        default="high",
+        help="Rendering quality (low=16 steps, medium=32, high=50, ultra=80, auto=adaptive) (default: high)"
     )
     parser.add_argument(
         "--interactive", "-i",
@@ -470,7 +496,11 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
 
     # Handle modes
     if args.static:
-        run_static_mode(args.character, expression=args.expression)
+        run_static_mode(
+            args.character,
+            expression=args.expression,
+            quality=args.quality,
+        )
     elif args.speak:
         asyncio.run(run_speak_mode(
             args.speak,
@@ -478,6 +508,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             color_scheme=args.scheme,
             voice=args.voice,
             expression=args.expression,
+            quality=args.quality,
         ))
     elif args.tutor:
         asyncio.run(run_tutor_mode(
@@ -486,6 +517,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             color_scheme=args.scheme,
             voice=args.voice,
             expression=args.expression,
+            quality=args.quality,
         ))
     else:
         run_demo_mode(
@@ -495,6 +527,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             fps=args.fps,
             expression=args.expression,
             interactive=args.interactive,
+            quality=args.quality,
         )
 
 

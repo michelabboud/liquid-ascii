@@ -20,9 +20,17 @@ def _to_array(v: Vec3) -> np.ndarray:
 
 
 def length(v: Vec3) -> float:
-    """Compute the length (magnitude) of a vector."""
-    v = _to_array(v)
-    return float(np.sqrt(np.sum(v * v)))
+    """
+    Compute the length (magnitude) of a vector.
+
+    Optimized to avoid unnecessary array conversions.
+    """
+    if isinstance(v, np.ndarray):
+        # Fast path for numpy arrays
+        return float(np.sqrt(np.sum(v * v)))
+    # Fast path for tuples - avoid array conversion
+    x, y, z = v
+    return float((x * x + y * y + z * z) ** 0.5)
 
 
 def length_vec(v: np.ndarray) -> np.ndarray:

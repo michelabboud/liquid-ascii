@@ -97,6 +97,7 @@ class Head:
         geometry: Optional[HeadGeometry] = None,
         enable_idle_animation: bool = True,
         enable_expressions: bool = True,
+        enable_gestures: bool = False,
     ):
         """
         Initialize the head model.
@@ -105,15 +106,22 @@ class Head:
             geometry: Head geometry parameters
             enable_idle_animation: Enable organic idle movement
             enable_expressions: Enable expression system
+            enable_gestures: Enable gesture system (nodding, shaking, etc.)
         """
         self.geometry = geometry or HeadGeometry()
         self.state = HeadState()
         self.enable_idle_animation = enable_idle_animation
         self.enable_expressions = enable_expressions
+        self.enable_gestures = enable_gestures
         self._time = 0.0
 
         # Expression system
         self.expression_manager = ExpressionManager() if enable_expressions else None
+
+        # Gesture system
+        from .gestures import GestureController
+
+        self.gesture_controller = GestureController() if enable_gestures else None
 
     def update(self, dt: float):
         """
@@ -129,13 +137,24 @@ class Head:
             current_expr = self.expression_manager.update()
             self._apply_expression(current_expr)
 
+        # Update gestures
+        if self.enable_gestures and self.gesture_controller:
+            tilt_x, tilt_y, tilt_z, eye_x, eye_y = self.gesture_controller.update(dt)
+            # Apply gesture transformations
+            self.state.head_tilt = (tilt_x, tilt_y, tilt_z)
+            self.state.eye_look_x = eye_x
+            self.state.eye_look_y = eye_y
+
         if self.enable_idle_animation:
             # Apply organic noise for lifelike movement
             self.state.idle_offset = organic_noise(self._time)
 
             # Auto-blink (only if not controlled by expression)
-            if not (self.enable_expressions and self.expression_manager and
-                    self.expression_manager.is_transitioning):
+            if not (
+                self.enable_expressions
+                and self.expression_manager
+                and self.expression_manager.is_transitioning
+            ):
                 self.state.blink_amount = blink_pattern(self._time)
 
     def set_mouth(self, openness: float, width: float = 0.5, pucker: float = 0.0):
@@ -417,6 +436,71 @@ class CharacterHead(Head):
                 eye_height=0.15,
                 mouth_y=-0.25,
                 mouth_height_base=0.05,
+            ),
+            # New character presets
+            "alien": HeadGeometry(
+                head_radii=(0.7, 1.6, 0.8),  # Elongated head
+                eye_socket_radius=0.30,  # Large almond eyes
+                eyeball_radius=0.20,
+                eye_separation=0.40,  # Wide set
+                eye_height=0.30,
+                mouth_y=-0.50,
+                mouth_height_base=0.05,  # Small mouth
+                nose_length=0.05,  # Minimal nose
+                eye_socket_smooth=0.15,
+            ),
+            "cat": HeadGeometry(
+                head_radii=(1.0, 1.1, 1.0),
+                eye_socket_radius=0.20,
+                eyeball_radius=0.12,  # Slit pupils (smaller eyeballs)
+                eye_separation=0.35,
+                eye_height=0.20,
+                mouth_y=-0.20,
+                mouth_height_base=0.04,
+                nose_length=0.08,  # Triangular nose
+            ),
+            "dog": HeadGeometry(
+                head_radii=(1.1, 1.2, 1.1),  # Slightly extended
+                eye_socket_radius=0.22,
+                eyeball_radius=0.14,
+                eye_separation=0.38,
+                eye_height=0.25,
+                mouth_y=-0.30,
+                mouth_height_base=0.08,
+                nose_length=0.15,  # Extended snout
+            ),
+            "baby": HeadGeometry(
+                head_radii=(1.2, 1.1, 1.1),  # Round, chubby
+                eye_socket_radius=0.28,  # Very large eyes
+                eyeball_radius=0.20,
+                eye_separation=0.30,
+                eye_height=0.35,  # Eyes high on head
+                mouth_y=-0.15,  # Higher mouth
+                mouth_height_base=0.04,  # Tiny mouth
+                nose_length=0.08,  # Small nose
+                eye_socket_smooth=0.12,
+            ),
+            "elder": HeadGeometry(
+                head_radii=(0.9, 1.4, 0.9),  # Thinner face
+                eye_socket_radius=0.18,  # Smaller eyes
+                eyeball_radius=0.10,
+                eye_separation=0.35,
+                eye_height=0.20,  # Eyes lower
+                mouth_y=-0.35,  # Mouth droops
+                mouth_height_base=0.06,
+                nose_length=0.20,  # Prominent nose
+            ),
+            "skull": HeadGeometry(
+                head_radii=(1.0, 1.3, 0.9),
+                eye_socket_radius=0.30,  # Large eye sockets
+                eyeball_radius=0.01,  # No visible eyeballs
+                eye_separation=0.35,
+                eye_height=0.25,
+                mouth_y=-0.30,
+                mouth_height_base=0.10,  # Wide mouth cavity
+                nose_length=0.10,
+                eye_socket_smooth=0.08,
+                mouth_smooth=0.05,
             ),
         }
         return presets.get(name, HeadGeometry())
