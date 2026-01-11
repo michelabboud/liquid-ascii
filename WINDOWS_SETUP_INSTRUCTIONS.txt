@@ -1,0 +1,140 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                   WINDOWS PULSEAUDIO SETUP INSTRUCTIONS                  ║
+║                     (Complete these steps in Windows)                    ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+✅ WSL side is READY! Now complete these Windows steps:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Open Windows PowerShell as Administrator
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Press Win+X, then select "Windows PowerShell (Admin)" or "Terminal (Admin)"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 2: Navigate to your project directory
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In PowerShell, run:
+
+    cd C:\Users\michel\projects\liquid-ascii
+
+(Adjust the path if your project is in a different location)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3: Run the automated setup script
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In PowerShell, run:
+
+    .\scripts\setup_windows_audio_for_wsl.ps1
+
+This script will:
+  ✓ Install PulseAudio for Windows
+  ✓ Configure it for WSL connections
+  ✓ Start the audio server
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ALTERNATIVE: Manual Setup (if script doesn't work)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If the automated script fails, follow these manual steps:
+
+A) Install PulseAudio for Windows:
+
+   Option 1: Using winget
+   ----------------------
+   winget install --id=PulseAudio.PulseAudio -e
+
+   Option 2: Manual download
+   -------------------------
+   1. Visit: https://www.freedesktop.org/wiki/Software/PulseAudio/Ports/Windows/Support/
+   2. Download the latest pulseaudio-x.x.zip
+   3. Extract to C:\PulseAudio
+
+
+B) Configure PulseAudio:
+
+   1. Create directory: C:\PulseAudio\etc\pulse
+   2. Create file: C:\PulseAudio\etc\pulse\default.pa
+   3. Add this content to default.pa:
+
+      load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1;172.16.0.0/12
+      load-module module-esound-protocol-tcp auth-ip-acl=127.0.0.0/8
+      load-module module-waveout sink_name=output source_name=input record=0
+
+
+C) Start PulseAudio:
+
+   cd C:\PulseAudio\bin
+   .\pulseaudio.exe
+
+   (Leave this window open! PulseAudio must keep running)
+
+
+D) Configure Windows Firewall (if needed):
+
+   1. Open Windows Defender Firewall
+   2. Click "Allow an app through firewall"
+   3. Click "Change settings"
+   4. Click "Allow another app..."
+   5. Browse to: C:\PulseAudio\bin\pulseaudio.exe
+   6. Add it and check both Private and Public
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4: Test the setup
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After completing Windows setup:
+
+1. Return to WSL terminal
+2. Close and reopen your WSL terminal (important!)
+3. Run the test command (see below)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERIFICATION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Windows:
+  [ ] PulseAudio installed in C:\PulseAudio
+  [ ] Configuration file created (default.pa)
+  [ ] PulseAudio is running (check Task Manager)
+  [ ] Firewall allows PulseAudio
+
+In WSL:
+  [ ] Environment variables set (already done ✓)
+  [ ] PortAudio installed (already done ✓)
+  [ ] Dependencies updated (already done ✓)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AFTER WINDOWS SETUP IS COMPLETE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Return to WSL and run:
+
+    ./scripts/test_wsl_audio.sh
+
+This will test your audio setup step by step.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NEED HELP?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  • Full documentation: cat docs/WSL_AUDIO_FIX.md
+  • Quick guide: cat WSL_README.md
+  • Summary: cat .wsl-audio-summary.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your WSL Host IP: 10.255.255.254
+Your PULSE_SERVER: tcp:10.255.255.254
+
+These are already configured in WSL ✓

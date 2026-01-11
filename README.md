@@ -32,67 +32,126 @@ A terminal-based ASCII art animation system featuring a "talking head" character
 - Terminal with ANSI color support
 - Internet connection (for TTS)
 
+## Quick Start
+
+**TL;DR** - Get started in 30 seconds:
+
+```bash
+git clone https://github.com/yourusername/liquid-ascii.git
+cd liquid-ascii
+./dev.sh setup    # One command installs everything!
+./dev.sh run      # Try it!
+```
+
+See [QUICKSTART.md](QUICKSTART.md) for more examples and the full command reference.
+
 ## Installation
+
+**Quick Start** (Recommended - uses [uv](https://github.com/astral-sh/uv) for 10-100x faster installs):
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/liquid-ascii.git
 cd liquid-ascii
 
+# Automated setup (installs uv, creates venv, installs dependencies)
+./dev.sh setup
+
+# Windows: .\scripts\dev.ps1 setup
+```
+
+**Manual Installation** (if you prefer pip):
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/liquid-ascii.git
+cd liquid-ascii
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .\.venv\Scripts\Activate.ps1
+
 # Install dependencies
 pip install -r requirements.txt
-
-# Or install as package
 pip install -e .
 ```
+
+See [INSTALL.md](INSTALL.md) for detailed installation instructions and troubleshooting.
 
 ## Quick Start
 
 ### Demo Mode (Animated Head)
 
 ```bash
-python -m src.main
+./dev.sh run
+# or: python -m src.main
 ```
 
 ### Speak Text
 
 ```bash
-python -m src.main --speak "Hello, I am your ASCII assistant!"
+./dev.sh run --speak "Hello, I am your ASCII assistant!"
+# or: python -m src.main --speak "Hello, I am your ASCII assistant!"
 ```
 
 ### Tutor Mode (Read Files)
 
 ```bash
-python -m src.main --tutor README.md
+./dev.sh run --tutor README.md
+# or: python -m src.main --tutor README.md
 ```
 
 ### With Colors
 
 ```bash
 # Rainbow effect
-python -m src.main --rainbow horizontal
+./dev.sh run --rainbow horizontal
 
 # Color scheme
-python -m src.main --scheme neon
+./dev.sh run --scheme neon
+
+# or: python -m src.main --rainbow horizontal --scheme neon
 ```
 
 ## Usage
 
-```
-liquid-ascii [options]
+```bash
+# Using dev script (handles venv activation automatically)
+./dev.sh run [options]
 
-Options:
-  --speak, -s TEXT      Text to speak
-  --tutor, -t FILE      Path to text/markdown file to read aloud
-  --character, -c NAME  Character preset (default, round, tall, wide, robot, cute)
-  --scheme NAME         Color scheme (default, pale, dark, robot, alien, ghost, sunset, ocean, neon, monochrome)
-  --rainbow, -r MODE    Rainbow mode (horizontal, vertical, radial, diagonal, wave)
-  --voice, -v NAME      TTS voice name (default: en-US-AriaNeural)
-  --fps NUMBER          Target FPS (default: 15)
-  --static              Render single static frame
-  --list-voices         List available TTS voices
-  --list-schemes        List available color schemes
+# Or direct Python (requires venv activation)
+python -m src.main [options]
+
+# Or if installed globally
+liquid-ascii [options]
 ```
+
+### Options
+
+```
+--speak, -s TEXT      Text to speak
+--tutor, -t FILE      Path to text/markdown file to read aloud
+--character, -c NAME  Character preset (default, round, tall, wide, robot, cute)
+--scheme NAME         Color scheme (default, pale, dark, robot, alien, ghost, sunset, ocean, neon, monochrome)
+--rainbow, -r MODE    Rainbow mode (horizontal, vertical, radial, diagonal, wave)
+--voice, -v NAME      TTS voice name (default: en-US-AriaNeural)
+--fps NUMBER          Target FPS (default: 15)
+--static              Render single static frame
+--list-voices         List available TTS voices
+--list-schemes        List available color schemes
+```
+
+### Development Commands
+
+```bash
+./dev.sh help         # Show all available commands
+./dev.sh test         # Run tests
+./dev.sh status       # Check environment status
+./dev.sh update       # Update dependencies
+./dev.sh clean        # Clean environment
+```
+
+**Windows**: Use `.\scripts\dev.ps1` instead of `./dev.sh`
 
 ## Examples
 

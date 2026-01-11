@@ -11,7 +11,7 @@ from .animation import (
     AnimationController,
 )
 from .visemes import Viseme, VisemeController, VISEME_SHAPES
-from .head import Head, HeadState
+from .head import Head, HeadState, CharacterHead, HeadGeometry
 
 __all__ = [
     "smoothstep",
@@ -27,4 +27,6 @@ __all__ = [
     "VISEME_SHAPES",
     "Head",
     "HeadState",
+    "CharacterHead",
+    "HeadGeometry",
 ]
