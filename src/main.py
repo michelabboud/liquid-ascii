@@ -283,6 +283,10 @@ def run_demo_mode(
     quality: str = "high",
     compositor: EffectsCompositor | None = None,
     duration: float | None = None,
+    wireframe: bool = False,
+    edge_char: str = "#",
+    edge_threshold: float = 0.5,
+    edge_thickness: int = 1,
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -297,6 +301,10 @@ def run_demo_mode(
         quality: Quality level (low/medium/high/ultra/auto)
         compositor: Optional effects compositor for visual effects
         duration: Duration in seconds (None = run until interrupted)
+        wireframe: Enable wireframe/edge-only rendering
+        edge_char: Character to use for wireframe edges
+        edge_threshold: Edge detection sensitivity (0-2)
+        edge_thickness: Edge thickness in pixels
     """
     from .terminal import (
         PRESET_SCHEMES,
@@ -387,7 +395,15 @@ def run_demo_mode(
             # Skip update if paused
             if controller.is_paused():
                 sdf = head.get_sdf()
-                frame = raymarcher.render_frame(sdf)
+                if wireframe:
+                    frame = raymarcher.render_frame_wireframe(
+                        sdf,
+                        edge_char=edge_char,
+                        normal_threshold=edge_threshold,
+                        edge_thickness=edge_thickness,
+                    )
+                else:
+                    frame = raymarcher.render_frame(sdf)
 
                 # Apply effects if compositor is available
                 if compositor:
@@ -401,7 +417,15 @@ def run_demo_mode(
         # Normal update
         head.update(dt)
         sdf = head.get_sdf()
-        frame = raymarcher.render_frame(sdf)
+        if wireframe:
+            frame = raymarcher.render_frame_wireframe(
+                sdf,
+                edge_char=edge_char,
+                normal_threshold=edge_threshold,
+                edge_thickness=edge_thickness,
+            )
+        else:
+            frame = raymarcher.render_frame(sdf)
 
         # Apply effects if compositor is available
         if compositor:
@@ -432,6 +456,10 @@ async def run_speak_mode(
     voice: str | None = None,
     expression: str | None = None,
     quality: str = "high",
+    wireframe: bool = False,
+    edge_char: str = "#",
+    edge_threshold: float = 0.5,
+    edge_thickness: int = 1,
 ):
     """
     Run speaking mode - head speaks given text.
@@ -443,6 +471,10 @@ async def run_speak_mode(
         voice: Voice to use (None = use character's default voice)
         expression: Initial expression
         quality: Rendering quality
+        wireframe: Enable wireframe/edge-only rendering
+        edge_char: Character to use for wireframe edges
+        edge_threshold: Edge detection sensitivity (0-2)
+        edge_thickness: Edge thickness in pixels
     """
 
     display = Display(target_fps=30.0)
@@ -500,7 +532,15 @@ async def run_speak_mode(
 
             # Render
             sdf = head.get_sdf()
-            frame = raymarcher.render_frame(sdf)
+            if wireframe:
+                frame = raymarcher.render_frame_wireframe(
+                    sdf,
+                    edge_char=edge_char,
+                    normal_threshold=edge_threshold,
+                    edge_thickness=edge_thickness,
+                )
+            else:
+                frame = raymarcher.render_frame(sdf)
 
             status = f"Speaking... {t:.1f}s / {result.duration:.1f}s"
             display.render_frame(frame, status_text=status)
@@ -518,6 +558,10 @@ async def run_tutor_mode(
     voice: str | None = None,
     expression: str | None = None,
     quality: str = "high",
+    wireframe: bool = False,
+    edge_char: str = "#",
+    edge_threshold: float = 0.5,
+    edge_thickness: int = 1,
 ):
     """
     Run tutor mode - read and explain a text/markdown file.
@@ -529,6 +573,10 @@ async def run_tutor_mode(
         voice: Voice to use (None = use character's default voice)
         expression: Initial expression
         quality: Rendering quality
+        wireframe: Enable wireframe/edge-only rendering
+        edge_char: Character to use for wireframe edges
+        edge_threshold: Edge detection sensitivity (0-2)
+        edge_thickness: Edge thickness in pixels
     """
     display = Display(target_fps=30.0)
     terminal_width, terminal_height = display.get_size()
@@ -594,7 +642,15 @@ async def run_tutor_mode(
 
                 # Render
                 sdf = head.get_sdf()
-                frame = raymarcher.render_frame(sdf)
+                if wireframe:
+                    frame = raymarcher.render_frame_wireframe(
+                        sdf,
+                        edge_char=edge_char,
+                        normal_threshold=edge_threshold,
+                        edge_thickness=edge_thickness,
+                    )
+                else:
+                    frame = raymarcher.render_frame(sdf)
 
                 # Truncate current text for status
                 text_preview = segment.text[:40] + "..." if len(segment.text) > 40 else segment.text
@@ -1125,6 +1181,31 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         "--list-effect-presets", action="store_true", help="List available effect presets"
     )
 
+    # Rendering Modes
+    parser.add_argument(
+        "--wireframe",
+        action="store_true",
+        help="Enable wireframe/edge-only rendering mode for clearer character outlines",
+    )
+    parser.add_argument(
+        "--edge-char",
+        type=str,
+        default="#",
+        help="Character to use for wireframe edges (default: #)",
+    )
+    parser.add_argument(
+        "--edge-threshold",
+        type=float,
+        default=0.5,
+        help="Edge detection sensitivity 0-2, higher = more edges (default: 0.5)",
+    )
+    parser.add_argument(
+        "--edge-thickness",
+        type=int,
+        default=1,
+        help="Edge thickness in pixels (default: 1)",
+    )
+
     # Configuration
     parser.add_argument(
         "--config", type=str, metavar="PATH", help="Load configuration from file (.yaml/.json)"
@@ -1370,6 +1451,10 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 voice=args.voice,
                 expression=args.expression,
                 quality=args.quality,
+                wireframe=args.wireframe,
+                edge_char=args.edge_char,
+                edge_threshold=args.edge_threshold,
+                edge_thickness=args.edge_thickness,
             )
         )
     elif args.tutor:
@@ -1381,6 +1466,10 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 voice=args.voice,
                 expression=args.expression,
                 quality=args.quality,
+                wireframe=args.wireframe,
+                edge_char=args.edge_char,
+                edge_threshold=args.edge_threshold,
+                edge_thickness=args.edge_thickness,
             )
         )
     else:
@@ -1402,6 +1491,10 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             quality=args.quality,
             compositor=compositor,
             duration=args.duration,
+            wireframe=args.wireframe,
+            edge_char=args.edge_char,
+            edge_threshold=args.edge_threshold,
+            edge_thickness=args.edge_thickness,
         )
 
 
