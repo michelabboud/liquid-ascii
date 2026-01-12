@@ -167,6 +167,7 @@ def create_head_renderer(
     character: str = "default",
     quality: str = "high",
     ramp: str = "standard",
+    lighting: str = "default",
 ) -> tuple:
     """
     Create a head model with renderer.
@@ -177,13 +178,14 @@ def create_head_renderer(
         character: Character preset name
         quality: Quality level (low/medium/high/ultra/auto)
         ramp: ASCII ramp style (standard, unicode, stars, faces, etc.)
+        lighting: Lighting preset (default, dramatic, soft, metallic, etc.)
 
     Returns:
         (head, raymarcher) tuple
     """
     head = CharacterHead(character_name=character)
     camera = Camera(position=(0, 0, -3.5), target=(0, 0, 0))
-    shader = ASCIIShader(ramp=ramp)
+    shader = ASCIIShader(ramp=ramp, lighting_preset=lighting)
 
     # Convert quality string to enum
     quality_level = QualityLevel(quality)
@@ -287,6 +289,7 @@ def run_demo_mode(
     edge_char: str = "#",
     edge_threshold: float = 0.5,
     edge_thickness: int = 1,
+    lighting: str = "default",
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -305,6 +308,7 @@ def run_demo_mode(
         edge_char: Character to use for wireframe edges
         edge_threshold: Edge detection sensitivity (0-2)
         edge_thickness: Edge thickness in pixels
+        lighting: Lighting preset name
     """
     from .terminal import (
         PRESET_SCHEMES,
@@ -319,7 +323,7 @@ def run_demo_mode(
     # Calculate optimal resolution based on terminal size
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality)
+    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
 
     # Set initial expression if specified
     if expression:
@@ -460,6 +464,7 @@ async def run_speak_mode(
     edge_char: str = "#",
     edge_threshold: float = 0.5,
     edge_thickness: int = 1,
+    lighting: str = "default",
 ):
     """
     Run speaking mode - head speaks given text.
@@ -475,6 +480,7 @@ async def run_speak_mode(
         edge_char: Character to use for wireframe edges
         edge_threshold: Edge detection sensitivity (0-2)
         edge_thickness: Edge thickness in pixels
+        lighting: Lighting preset name
     """
 
     display = Display(target_fps=30.0)
@@ -483,7 +489,7 @@ async def run_speak_mode(
     # Calculate optimal resolution based on terminal size
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality)
+    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
 
     # Set initial expression if specified
     if expression:
@@ -562,6 +568,7 @@ async def run_tutor_mode(
     edge_char: str = "#",
     edge_threshold: float = 0.5,
     edge_thickness: int = 1,
+    lighting: str = "default",
 ):
     """
     Run tutor mode - read and explain a text/markdown file.
@@ -577,6 +584,7 @@ async def run_tutor_mode(
         edge_char: Character to use for wireframe edges
         edge_threshold: Edge detection sensitivity (0-2)
         edge_thickness: Edge thickness in pixels
+        lighting: Lighting preset name
     """
     display = Display(target_fps=30.0)
     terminal_width, terminal_height = display.get_size()
@@ -584,7 +592,7 @@ async def run_tutor_mode(
     # Calculate optimal resolution based on terminal size
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality)
+    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
 
     # Set initial expression if specified
     if expression:
@@ -680,6 +688,7 @@ def run_static_mode(
     use_emojis: bool = False,
     use_edges: bool = True,
     edge_boost: float = 0.8,
+    lighting: str = "default",
 ):
     """
     Render a single static frame with feature-based coloring.
@@ -693,7 +702,7 @@ def run_static_mode(
     terminal_height = term.height or 40
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality, ramp)
+    head, raymarcher = create_head_renderer(width, height, character, quality, ramp, lighting)
     color_scheme = PRESET_SCHEMES[color_scheme_name]
 
     # Set initial expression if specified
@@ -726,6 +735,7 @@ async def run_chat_mode(
     llm_model: str | None = None,
     enable_voice: bool = False,
     voice: str | None = None,
+    lighting: str = "default",
 ):
     """
     Run interactive chat mode with LLM.
@@ -739,6 +749,7 @@ async def run_chat_mode(
         llm_model: LLM model name (optional)
         enable_voice: Enable voice output with TTS and lip sync
         voice: TTS voice name (optional, defaults to character voice)
+        lighting: Lighting preset name
     """
     from .chat import VoiceChatController, stream_with_voice
 
@@ -783,7 +794,7 @@ async def run_chat_mode(
         terminal_width, available_height, margin=2
     )
 
-    head, raymarcher = create_head_renderer(width, height, character, quality)
+    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
     head.set_expression("neutral")
     display.set_color_scheme(color_scheme)
 
@@ -1205,6 +1216,18 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         default=1,
         help="Edge thickness in pixels (default: 1)",
     )
+    parser.add_argument(
+        "--lighting",
+        type=str,
+        choices=["default", "dramatic", "soft", "metallic", "flat", "noir", "cartoon", "subsurface"],
+        default="default",
+        help="Lighting preset for visual style (default: default)",
+    )
+    parser.add_argument(
+        "--list-lighting",
+        action="store_true",
+        help="List available lighting presets",
+    )
 
     # Configuration
     parser.add_argument(
@@ -1227,6 +1250,14 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         print("Available color schemes:")
         for name in PRESET_SCHEMES:
             print(f"  - {name}")
+        return
+
+    if args.list_lighting:
+        from .renderer import LIGHTING_PRESETS
+
+        print("Available lighting presets:")
+        for name, preset in LIGHTING_PRESETS.items():
+            print(f"  - {name:12} {preset['description']}")
         return
 
     if args.list_voices:
@@ -1440,6 +1471,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 llm_model=args.llm_model,
                 enable_voice=args.chat_voice,
                 voice=args.voice,
+                lighting=args.lighting,
             )
         )
     elif args.speak:
@@ -1455,6 +1487,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 edge_char=args.edge_char,
                 edge_threshold=args.edge_threshold,
                 edge_thickness=args.edge_thickness,
+                lighting=args.lighting,
             )
         )
     elif args.tutor:
@@ -1470,6 +1503,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 edge_char=args.edge_char,
                 edge_threshold=args.edge_threshold,
                 edge_thickness=args.edge_thickness,
+                lighting=args.lighting,
             )
         )
     else:
@@ -1495,6 +1529,7 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             edge_char=args.edge_char,
             edge_threshold=args.edge_threshold,
             edge_thickness=args.edge_thickness,
+            lighting=args.lighting,
         )
 
 

@@ -15,7 +15,7 @@ from .sdf import (
     sdf_torus,
     sdf_union,
 )
-from .shading import ASCIIShader
+from .shading import ASCIIShader, LIGHTING_PRESETS
 
 __all__ = [
     "sdf_sphere",
@@ -30,6 +30,7 @@ __all__ = [
     "sdf_intersection",
     "Raymarcher",
     "ASCIIShader",
+    "LIGHTING_PRESETS",
     "Camera",
     "QualityLevel",
     "QualityPreset",
