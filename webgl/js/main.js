@@ -7,6 +7,7 @@
 
 import { loadShaderProgram, getUniformLocations, getAttributeLocations } from './shader-loader.js';
 import { getCharacterGeometry } from './characters.js';
+import { AnimationController, AnimationPresets } from './animations.js';
 
 /**
  * Lighting presets matching src/renderer/shading.py
@@ -58,6 +59,10 @@ class LiquidASCIIRenderer {
         // Cel-shading state
         this.celShading = false;
         this.celBands = 3;
+
+        // Animation controller
+        this.animationController = new AnimationController();
+        this.animationsEnabled = true;
     }
 
     /**
@@ -218,7 +223,10 @@ class LiquidASCIIRenderer {
 
         const camX = Math.sin(this.cameraAngle) * this.cameraDistance;
         const camZ = Math.cos(this.cameraAngle) * this.cameraDistance;
-        const camY = 0.3;
+
+        // Apply breathing animation to camera Y
+        const breathingOffset = this.animationsEnabled ? this.animationController.getBreathingOffset() : 0;
+        const camY = 0.3 + breathingOffset;
 
         if (u.u_camera_pos) gl.uniform3f(u.u_camera_pos, camX, camY, camZ);
         if (u.u_camera_target) gl.uniform3f(u.u_camera_target, 0.0, 0.0, 0.0);
@@ -232,8 +240,12 @@ class LiquidASCIIRenderer {
         if (u.u_eye_height) gl.uniform1f(u.u_eye_height, geom.eye_height);
         if (u.u_eye_depth) gl.uniform1f(u.u_eye_depth, geom.eye_depth);
         if (u.u_pupil_radius) gl.uniform1f(u.u_pupil_radius, geom.pupil_radius);
+        // Apply idle mouth animation
+        const idleMouthMovement = this.animationsEnabled ? this.animationController.getMouthIdleMovement() : 0;
+        const mouthOpenness = geom.mouth_openness + idleMouthMovement;
+
         if (u.u_mouth_y) gl.uniform1f(u.u_mouth_y, geom.mouth_y);
-        if (u.u_mouth_openness) gl.uniform1f(u.u_mouth_openness, geom.mouth_openness);
+        if (u.u_mouth_openness) gl.uniform1f(u.u_mouth_openness, mouthOpenness);
         if (u.u_mouth_width) gl.uniform1f(u.u_mouth_width, geom.mouth_width);
         if (u.u_nose_length) gl.uniform1f(u.u_nose_length, geom.nose_length);
         if (u.u_eye_socket_smooth) gl.uniform1f(u.u_eye_socket_smooth, geom.eye_socket_smooth);
@@ -268,6 +280,11 @@ class LiquidASCIIRenderer {
         this.frameCount++;
         if (this.frameCount % 30 === 0) {
             this.fps = Math.round(1000 / deltaTime);
+        }
+
+        // Update animations
+        if (this.animationsEnabled) {
+            this.animationController.update(deltaTime / 1000); // Convert ms to seconds
         }
 
         // Clear canvas
@@ -365,6 +382,11 @@ class UIController {
         });
 
         // Animation controls
+        document.getElementById('idleAnimations').addEventListener('change', (e) => {
+            this.renderer.animationsEnabled = e.target.checked;
+            this.renderer.animationController.setEnabled(e.target.checked);
+        });
+
         document.getElementById('autoRotate').addEventListener('change', (e) => {
             this.renderer.autoRotate = e.target.checked;
         });
@@ -448,6 +470,11 @@ class UIController {
 
         this.setSliderValue('celBands', 3);
         this.renderer.celBands = 3;
+
+        document.getElementById('idleAnimations').checked = true;
+        this.renderer.animationsEnabled = true;
+        this.renderer.animationController.setEnabled(true);
+        this.renderer.animationController.reset();
 
         document.getElementById('autoRotate').checked = true;
         this.renderer.autoRotate = true;
