@@ -18,6 +18,7 @@ A terminal-based ASCII art animation system featuring a "talking head" character
 
 ## Features
 
+- **🚀 GPU-Accelerated WebGL Version** - 60+ FPS browser-based rendering (NEW!)
 - **3D ASCII Rendering** - Raymarching with signed distance functions (SDF)
 - **Liquid Smooth Transitions** - Metaball-style smooth unions for organic morphing
 - **Talking Head Animation** - Viseme-based lip synchronization
@@ -118,6 +119,33 @@ pip install -e .
 ```
 
 See [INSTALL.md](INSTALL.md) for detailed installation instructions and troubleshooting.
+
+## 🚀 WebGL GPU Version (NEW!)
+
+**60+ FPS** GPU-accelerated version runs directly in your browser with **no installation required**!
+
+Perfect for:
+- ✅ **Public demos** - Just share a URL
+- ✅ **Any GPU** - Works on AMD, Intel, NVIDIA
+- ✅ **Mobile devices** - Runs on phones and tablets
+- ✅ **Instant access** - No Python, no dependencies
+
+```bash
+# Start local server
+cd webgl
+python3 -m http.server 8000
+
+# Open in browser: http://localhost:8000
+```
+
+**Features:**
+- All 15+ character presets (robot, alien, cyclops, monster, fish, etc.)
+- 8 lighting presets (dramatic, metallic, noir, cartoon, etc.)
+- Cel-shading / toon rendering
+- Interactive controls
+- 60-120 FPS performance
+
+See [webgl/README.md](webgl/README.md) for full documentation.
 
 ## Quick Start
 
