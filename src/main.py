@@ -168,6 +168,8 @@ def create_head_renderer(
     quality: str = "high",
     ramp: str = "standard",
     lighting: str = "default",
+    cel_shading: bool = False,
+    cel_bands: int = 3,
 ) -> tuple:
     """
     Create a head model with renderer.
@@ -179,13 +181,20 @@ def create_head_renderer(
         quality: Quality level (low/medium/high/ultra/auto)
         ramp: ASCII ramp style (standard, unicode, stars, faces, etc.)
         lighting: Lighting preset (default, dramatic, soft, metallic, etc.)
+        cel_shading: Enable cel-shading/toon style
+        cel_bands: Number of lighting bands for cel-shading (2-8)
 
     Returns:
         (head, raymarcher) tuple
     """
     head = CharacterHead(character_name=character)
     camera = Camera(position=(0, 0, -3.5), target=(0, 0, 0))
-    shader = ASCIIShader(ramp=ramp, lighting_preset=lighting)
+    shader = ASCIIShader(
+        ramp=ramp,
+        lighting_preset=lighting,
+        cel_shading=cel_shading,
+        cel_bands=cel_bands
+    )
 
     # Convert quality string to enum
     quality_level = QualityLevel(quality)
@@ -1227,6 +1236,17 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         "--list-lighting",
         action="store_true",
         help="List available lighting presets",
+    )
+    parser.add_argument(
+        "--cel-shading",
+        action="store_true",
+        help="Enable cel-shading/toon style (posterized lighting)",
+    )
+    parser.add_argument(
+        "--cel-bands",
+        type=int,
+        default=3,
+        help="Number of lighting bands for cel-shading (2-8, default: 3)",
     )
 
     # Configuration
