@@ -170,6 +170,8 @@ def create_head_renderer(
     lighting: str = "default",
     cel_shading: bool = False,
     cel_bands: int = 3,
+    use_opencl: bool = False,
+    opencl_device_index: Optional[int] = None,
 ) -> tuple:
     """
     Create a head model with renderer.
@@ -183,9 +185,11 @@ def create_head_renderer(
         lighting: Lighting preset (default, dramatic, soft, metallic, etc.)
         cel_shading: Enable cel-shading/toon style
         cel_bands: Number of lighting bands for cel-shading (2-8)
+        use_opencl: Use OpenCL GPU acceleration
+        opencl_device_index: OpenCL device index (None for auto-select)
 
     Returns:
-        (head, raymarcher) tuple
+        (head, raymarcher) tuple or (head, opencl_renderer) tuple
     """
     head = CharacterHead(character_name=character)
     camera = Camera(position=(0, 0, -3.5), target=(0, 0, 0))
@@ -196,7 +200,42 @@ def create_head_renderer(
         cel_bands=cel_bands
     )
 
-    # Convert quality string to enum
+    if use_opencl:
+        # Use OpenCL GPU acceleration
+        from .renderer.opencl.cl_renderer import OpenCLRenderer, get_best_opencl_device
+
+        if opencl_device_index is None:
+            device = get_best_opencl_device()
+            if device is None:
+                print("WARNING: No OpenCL devices found, falling back to CPU rendering")
+                use_opencl = False
+            else:
+                platform_idx, device_idx = device
+        else:
+            # Parse device index (format: platform:device or just device)
+            if ':' in str(opencl_device_index):
+                platform_idx, device_idx = map(int, str(opencl_device_index).split(':'))
+            else:
+                platform_idx = 0
+                device_idx = opencl_device_index
+
+        if use_opencl:
+            try:
+                renderer = OpenCLRenderer(
+                    width=width,
+                    height=height,
+                    camera=camera,
+                    shader=shader,
+                    platform_index=platform_idx,
+                    device_index=device_idx,
+                )
+                return head, renderer
+            except Exception as e:
+                print(f"WARNING: OpenCL initialization failed: {e}")
+                print("Falling back to CPU rendering")
+                use_opencl = False
+
+    # Fall back to CPU rendering
     quality_level = QualityLevel(quality)
 
     raymarcher = Raymarcher(
@@ -299,6 +338,8 @@ def run_demo_mode(
     edge_threshold: float = 0.5,
     edge_thickness: int = 1,
     lighting: str = "default",
+    use_opencl: bool = False,
+    opencl_device_index: Optional[int] = None,
 ):
     """
     Run the demo animation (idle head with blinking).
@@ -332,7 +373,10 @@ def run_demo_mode(
     # Calculate optimal resolution based on terminal size
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
+    head, raymarcher = create_head_renderer(
+        width, height, character, quality, lighting=lighting,
+        use_opencl=use_opencl, opencl_device_index=opencl_device_index
+    )
 
     # Set initial expression if specified
     if expression:
@@ -474,6 +518,8 @@ async def run_speak_mode(
     edge_threshold: float = 0.5,
     edge_thickness: int = 1,
     lighting: str = "default",
+    use_opencl: bool = False,
+    opencl_device_index: Optional[int] = None,
 ):
     """
     Run speaking mode - head speaks given text.
@@ -498,7 +544,10 @@ async def run_speak_mode(
     # Calculate optimal resolution based on terminal size
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
+    head, raymarcher = create_head_renderer(
+        width, height, character, quality, lighting=lighting,
+        use_opencl=use_opencl, opencl_device_index=opencl_device_index
+    )
 
     # Set initial expression if specified
     if expression:
@@ -578,6 +627,8 @@ async def run_tutor_mode(
     edge_threshold: float = 0.5,
     edge_thickness: int = 1,
     lighting: str = "default",
+    use_opencl: bool = False,
+    opencl_device_index: Optional[int] = None,
 ):
     """
     Run tutor mode - read and explain a text/markdown file.
@@ -601,7 +652,10 @@ async def run_tutor_mode(
     # Calculate optimal resolution based on terminal size
     width, height = calculate_optimal_resolution(terminal_width, terminal_height)
 
-    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
+    head, raymarcher = create_head_renderer(
+        width, height, character, quality, lighting=lighting,
+        use_opencl=use_opencl, opencl_device_index=opencl_device_index
+    )
 
     # Set initial expression if specified
     if expression:
@@ -698,6 +752,8 @@ def run_static_mode(
     use_edges: bool = True,
     edge_boost: float = 0.8,
     lighting: str = "default",
+    use_opencl: bool = False,
+    opencl_device_index: Optional[int] = None,
 ):
     """
     Render a single static frame with feature-based coloring.
@@ -745,6 +801,8 @@ async def run_chat_mode(
     enable_voice: bool = False,
     voice: str | None = None,
     lighting: str = "default",
+    use_opencl: bool = False,
+    opencl_device_index: Optional[int] = None,
 ):
     """
     Run interactive chat mode with LLM.
@@ -803,7 +861,10 @@ async def run_chat_mode(
         terminal_width, available_height, margin=2
     )
 
-    head, raymarcher = create_head_renderer(width, height, character, quality, lighting=lighting)
+    head, raymarcher = create_head_renderer(
+        width, height, character, quality, lighting=lighting,
+        use_opencl=use_opencl, opencl_device_index=opencl_device_index
+    )
     head.set_expression("neutral")
     display.set_color_scheme(color_scheme)
 
@@ -1113,6 +1174,22 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         help="Rendering quality (low=16 steps, medium=32, high=50, ultra=80, auto=adaptive) (default: high)",
     )
     parser.add_argument(
+        "--opencl",
+        action="store_true",
+        help="Use OpenCL GPU acceleration (10-30x faster, requires pyopencl)",
+    )
+    parser.add_argument(
+        "--opencl-device",
+        type=int,
+        default=None,
+        help="OpenCL device index (use --list-opencl to see devices)",
+    )
+    parser.add_argument(
+        "--list-opencl",
+        action="store_true",
+        help="List available OpenCL devices and exit",
+    )
+    parser.add_argument(
         "--interactive",
         "-i",
         action="store_true",
@@ -1318,6 +1395,27 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
         )
         return
 
+    if args.list_opencl:
+        from .renderer.opencl.cl_renderer import list_opencl_devices
+
+        devices = list_opencl_devices()
+        if not devices:
+            print("No OpenCL devices found.")
+            print()
+            print("Install PyOpenCL: pip install pyopencl")
+            return
+
+        print("Available OpenCL Devices:")
+        print("=" * 70)
+        for p_idx, d_idx, platform, device, dev_type in devices:
+            print(f"  [{p_idx}:{d_idx}] {device}")
+            print(f"         Platform: {platform}")
+            print(f"         Type: {dev_type}")
+            print()
+        print("Use --opencl-device <index> to select a specific device")
+        print("Example: ./dev.sh run --opencl --opencl-device 0")
+        return
+
     if args.list_llm_backends:
         from .chat import list_available_backends
 
@@ -1479,6 +1577,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             use_emojis=args.emojis,
             use_edges=use_edges,
             edge_boost=args.edge_intensity,
+            use_opencl=args.opencl,
+            opencl_device_index=args.opencl_device,
         )
     elif args.chat:
         asyncio.run(
@@ -1492,6 +1592,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 enable_voice=args.chat_voice,
                 voice=args.voice,
                 lighting=args.lighting,
+                use_opencl=args.opencl,
+                opencl_device_index=args.opencl_device,
             )
         )
     elif args.speak:
@@ -1508,6 +1610,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 edge_threshold=args.edge_threshold,
                 edge_thickness=args.edge_thickness,
                 lighting=args.lighting,
+                use_opencl=args.opencl,
+                opencl_device_index=args.opencl_device,
             )
         )
     elif args.tutor:
@@ -1524,6 +1628,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
                 edge_threshold=args.edge_threshold,
                 edge_thickness=args.edge_thickness,
                 lighting=args.lighting,
+                use_opencl=args.opencl,
+                opencl_device_index=args.opencl_device,
             )
         )
     else:
@@ -1550,6 +1656,8 @@ Rainbow modes: horizontal, vertical, radial, diagonal, wave, time
             edge_threshold=args.edge_threshold,
             edge_thickness=args.edge_thickness,
             lighting=args.lighting,
+            use_opencl=args.opencl,
+            opencl_device_index=args.opencl_device,
         )
 
 
