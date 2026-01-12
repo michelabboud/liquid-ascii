@@ -750,6 +750,201 @@ Each character can have different band counts (2 bands = stark, 4 bands = smooth
 
 ---
 
+## Part 11: PUBLIC RELEASE STRATEGY (AMD GPU Compatible)
+
+### User Context
+- **Target**: Public release (broad audience)
+- **User GPU**: AMD Radeon 780M (RDNA3, OpenGL 4.6, OpenCL 2.1, Vulkan)
+- **Constraint**: Cannot rely on NVIDIA CUDA
+
+### Recommended Approach: WebGL-First with PyOpenCL Fallback
+
+#### Phase 1: Character Differentiation (Week 1-2) - IMMEDIATE
+**Goal**: Make characters visually distinct at current 2 FPS
+- Enable edge/wireframe rendering mode
+- Exaggerate character geometry (robot = cube, alien = huge eyes)
+- Enhance lighting contrast
+- **Deliverable**: Visually distinct characters without GPU work
+
+#### Phase 2: WebGL Browser Version (Week 3-6) - PRIMARY TARGET
+**Goal**: 60+ FPS in browser, works on all devices
+
+**Why WebGL is perfect for public release:**
+1. **Universal compatibility**: Works on AMD, Intel, NVIDIA, mobile
+2. **Zero installation**: Just a URL
+3. **Easily shareable**: GitHub Pages, personal website
+4. **Works on user's AMD 780M**: RDNA3 has excellent WebGL support
+5. **Future-proof**: Works on devices not yet released
+
+**Implementation**:
+- Port SDF functions to GLSL fragment shaders
+- Raymarch in parallel on GPU (all pixels simultaneously)
+- ASCII output via texture→text conversion or pure pixel rendering
+- Add interactive controls (character picker, mouth/eye sliders)
+
+**Example deployment**:
+```
+https://yourusername.github.io/liquid-ascii-web/
+```
+
+#### Phase 3: PyOpenCL Terminal Version (Week 7-9) - OPTIONAL
+**Goal**: Keep terminal version for power users
+
+**Why PyOpenCL over Numba CUDA:**
+1. **Works on AMD GPUs**: Your 780M supports OpenCL 2.1
+2. **Cross-vendor**: Intel, AMD, NVIDIA all supported
+3. **CPU fallback**: Works even without GPU
+4. **Terminal output preserved**: ASCII in CLI
+
+**Implementation**:
+- Write OpenCL kernels for raymarching
+- Detect available OpenCL devices at runtime
+- Fallback to CPU if no GPU available
+- Keep terminal ASCII output
+
+### Recommended Development Order
+
+**Week 1-2: Quick Wins**
+- ✅ Edge rendering (existing code)
+- ✅ Extreme character geometry
+- ✅ Lighting enhancements
+- **Result**: 2 FPS but characters look great
+
+**Week 3-4: WebGL Setup**
+- Set up HTML/WebGL boilerplate
+- Port basic SDF functions to GLSL
+- Test sphere/ellipsoid rendering
+- **Result**: Basic 3D head in browser
+
+**Week 5-6: WebGL Feature Complete**
+- Full head composition with smooth operations
+- Lip sync integration
+- Character selector UI
+- Color schemes and effects
+- **Result**: 60+ FPS browser version, fully featured
+
+**Week 7-8: PyOpenCL (Optional)**
+- OpenCL kernel development
+- AMD GPU testing with 780M
+- CPU fallback implementation
+- **Result**: Fast terminal version
+
+**Week 9: Polish & Documentation**
+- Performance tuning
+- User documentation
+- Demo videos
+- GitHub Pages deployment
+
+### Hardware Detection Strategy
+
+```python
+# Pseudocode for runtime GPU detection
+def get_best_renderer():
+    if is_browser_environment():
+        return WebGLRenderer()  # Works everywhere
+
+    # For terminal/desktop
+    try:
+        import pyopencl as cl
+        devices = cl.get_platforms()[0].get_devices()
+        if devices:
+            return OpenCLRenderer(devices[0])  # AMD/Intel/NVIDIA
+    except:
+        pass
+
+    try:
+        import moderngl
+        ctx = moderngl.create_context()
+        return ModernGLRenderer(ctx)  # OpenGL desktop
+    except:
+        pass
+
+    return CPURenderer()  # Fallback (current 2 FPS)
+```
+
+### Testing on AMD 780M
+
+**Your GPU capabilities (Radeon 780M)**:
+- Architecture: RDNA3 (latest AMD architecture)
+- OpenGL: 4.6 ✅
+- OpenCL: 2.1 ✅
+- Vulkan: 1.3 ✅
+- DirectX: 12 Ultimate ✅
+- WebGL: 2.0 ✅ (via browser)
+
+**Expected performance**:
+- WebGL: 60-120 FPS at 80×40
+- PyOpenCL: 30-60 FPS at 80×40
+- ModernGL: 40-80 FPS at 80×40
+
+Your 780M is quite capable despite being integrated - it has 12 RDNA3 compute units, which is more than enough for this workload.
+
+### Public Release Checklist
+
+**Browser Version (Primary)**:
+- ✅ Works on Chrome, Firefox, Safari, Edge
+- ✅ Mobile responsive (portrait/landscape)
+- ✅ Touch controls for mobile
+- ✅ No installation required
+- ✅ GitHub Pages or Vercel hosting (free)
+- ✅ Share via simple URL
+
+**Terminal Version (Secondary)**:
+- ✅ Auto-detect GPU (OpenCL → CPU fallback)
+- ✅ Works without GPU (degraded performance OK)
+- ✅ Clear error messages if dependencies missing
+- ✅ pip install liquid-ascii (PyPI package)
+
+**Documentation**:
+- ✅ Live demo link (browser version)
+- ✅ Installation guide (terminal version)
+- ✅ GPU requirements clearly stated
+- ✅ Performance expectations per platform
+- ✅ Fallback behavior documented
+
+### Success Metrics for Public Release
+
+**Browser Version**:
+- ✅ Works on 95%+ of devices (any GPU)
+- ✅ 60 FPS on mid-range hardware (2020+)
+- ✅ 30 FPS on older hardware (2015-2019)
+- ✅ Degrades gracefully on very old hardware
+
+**Terminal Version**:
+- ✅ Fast on AMD/Intel/NVIDIA GPUs (30+ FPS)
+- ✅ Works without GPU (2 FPS, current performance)
+- ✅ Clear feedback about which renderer is active
+
+### Deployment Strategy
+
+**Browser Version**:
+```bash
+# Build static site
+npm run build
+
+# Deploy to GitHub Pages (free)
+gh-pages -d dist
+
+# Or deploy to Vercel (free)
+vercel deploy
+```
+
+**Terminal Version**:
+```bash
+# Package for PyPI
+python -m build
+
+# Upload to PyPI
+twine upload dist/*
+
+# Users install via
+pip install liquid-ascii
+```
+
+Both versions can coexist - users choose based on their needs!
+
+---
+
 ## Sources & References
 
 ### GPU Acceleration in Python
