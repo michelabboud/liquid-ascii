@@ -455,6 +455,103 @@ class Raymarcher:
             return normal / norm
         return np.array([0, 1, 0])
 
+    def render_frame_wireframe(
+        self,
+        sdf: SDFFunc,
+        edge_char: str = "#",
+        background: str = " ",
+        normal_threshold: float = 0.5,
+        depth_threshold: float = 0.1,
+        edge_thickness: int = 1,
+    ) -> str:
+        """
+        Render frame showing only edges (wireframe mode).
+
+        Creates a pure outline view by detecting geometric discontinuities.
+        Perfect for creating visually distinct character silhouettes.
+
+        Args:
+            sdf: Signed distance function to render
+            edge_char: Character to use for edges (default "#")
+            background: Background character (default " ")
+            normal_threshold: Sensitivity to surface normal changes (0-2, higher = more edges)
+            depth_threshold: Sensitivity to depth changes (higher = more edges)
+            edge_thickness: Thickness of edges (1 = single pixel, 2 = double, etc.)
+
+        Returns:
+            Multi-line ASCII string with wireframe rendering
+        """
+        # Generate rays
+        origins, directions = self.camera.get_rays_batch(self.width, self.height)
+
+        # Buffers
+        hit_mask = np.zeros((self.height, self.width), dtype=bool)
+        hit_points = np.zeros((self.height, self.width, 3))
+        normals = np.zeros((self.height, self.width, 3))
+
+        # Raymarch each pixel
+        for y in range(self.height):
+            for x in range(self.width):
+                origin = origins[y, x]
+                direction = directions[y, x]
+                t, hit_point = self.raymarch_single(origin, direction, sdf)
+
+                if hit_point is not None:
+                    hit_mask[y, x] = True
+                    hit_points[y, x] = hit_point
+                    normals[y, x] = compute_normal(hit_point, sdf)
+
+        # Detect edges
+        edge_mask = self._detect_edges(
+            hit_mask, normals, hit_points, normal_threshold, depth_threshold
+        )
+
+        # Apply edge thickness if > 1
+        if edge_thickness > 1:
+            edge_mask = self._thicken_edges(edge_mask, edge_thickness)
+
+        # Build output - only show edges
+        lines = []
+        for y in range(self.height):
+            row = ""
+            for x in range(self.width):
+                if edge_mask[y, x]:
+                    row += edge_char
+                else:
+                    row += background
+            lines.append(row)
+
+        return "\n".join(lines)
+
+    def _thicken_edges(self, edge_mask: np.ndarray, thickness: int) -> np.ndarray:
+        """
+        Thicken edges by dilating the edge mask.
+
+        Args:
+            edge_mask: Boolean mask of edge pixels
+            thickness: Number of pixels to expand edges (1 = no change, 2 = +1 pixel, etc.)
+
+        Returns:
+            Thickened edge mask
+        """
+        if thickness <= 1:
+            return edge_mask
+
+        thickened = edge_mask.copy()
+        h, w = edge_mask.shape
+
+        # Dilate by expanding each edge pixel to neighbors
+        for _ in range(thickness - 1):
+            expanded = thickened.copy()
+            for y in range(1, h - 1):
+                for x in range(1, w - 1):
+                    if thickened[y, x]:
+                        # Expand to 8-neighbors
+                        expanded[y - 1 : y + 2, x - 1 : x + 2] = True
+            thickened = expanded
+
+        return thickened
+
 
 class AdaptiveRaymarcher(Raymarcher):
     """

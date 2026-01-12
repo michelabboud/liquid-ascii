@@ -572,12 +572,19 @@ class CharacterHead(Head):
                 eye_height=0.20,
             ),
             "robot": HeadGeometry(
-                head_radii=(1.0, 1.0, 1.0),
-                eye_socket_radius=0.25,
-                eyeball_radius=0.15,
-                eye_separation=0.40,
-                eye_socket_smooth=0.02,
-                mouth_smooth=0.02,
+                head_radii=(1.0, 1.0, 1.0),  # Perfect cube-like proportions
+                eye_socket_radius=0.20,  # Rectangular "visor" eyes
+                eyeball_radius=0.18,  # Glowing eyes (almost fill socket)
+                eye_separation=0.50,  # Very wide-set, mechanical look
+                eye_height=0.20,  # Eyes at precise mid-point
+                mouth_y=-0.40,
+                mouth_width_base=0.35,  # Wide speaker grille
+                mouth_height_base=0.06,
+                nose_length=0.02,  # Minimal nose (antenna)
+                eye_socket_smooth=0.01,  # Hard edges (mechanical)
+                mouth_smooth=0.01,  # Hard edges (mechanical)
+                nose_smooth=0.01,
+                eyeball_smooth=0.02,
             ),
             "cute": HeadGeometry(
                 head_radii=(1.1, 1.0, 1.0),
@@ -590,15 +597,19 @@ class CharacterHead(Head):
             ),
             # New character presets
             "alien": HeadGeometry(
-                head_radii=(0.7, 1.6, 0.8),  # Elongated head
-                eye_socket_radius=0.30,  # Large almond eyes
-                eyeball_radius=0.20,
-                eye_separation=0.40,  # Wide set
-                eye_height=0.30,
-                mouth_y=-0.50,
-                mouth_height_base=0.05,  # Small mouth
-                nose_length=0.05,  # Minimal nose
-                eye_socket_smooth=0.15,
+                head_radii=(0.6, 2.0, 0.7),  # VERY elongated head (2x height!)
+                eye_socket_radius=0.45,  # MASSIVE almond eyes (3x normal)
+                eyeball_radius=0.38,  # Almost fills the socket
+                pupil_radius=0.12,  # Larger pupil for more alien look
+                eye_separation=0.50,  # Very wide set (side of head)
+                eye_height=0.40,  # High on the head
+                eye_depth=0.80,  # Slightly recessed
+                mouth_y=-0.70,  # Very low, tiny mouth
+                mouth_height_base=0.03,  # Tiny slit mouth
+                mouth_width_base=0.15,  # Narrow
+                nose_length=0.02,  # Almost no nose
+                nose_width=0.06,
+                eye_socket_smooth=0.18,  # Very smooth, organic
             ),
             "cat": HeadGeometry(
                 head_radii=(1.0, 1.1, 1.0),
@@ -621,15 +632,21 @@ class CharacterHead(Head):
                 nose_length=0.15,  # Extended snout
             ),
             "baby": HeadGeometry(
-                head_radii=(1.2, 1.1, 1.1),  # Round, chubby
-                eye_socket_radius=0.28,  # Very large eyes
-                eyeball_radius=0.20,
-                eye_separation=0.30,
-                eye_height=0.35,  # Eyes high on head
-                mouth_y=-0.15,  # Higher mouth
-                mouth_height_base=0.04,  # Tiny mouth
-                nose_length=0.08,  # Small nose
-                eye_socket_smooth=0.12,
+                head_radii=(1.3, 1.3, 1.3),  # Perfect sphere! (baby head)
+                eye_socket_radius=0.35,  # GIGANTIC eyes (kawaii!)
+                eyeball_radius=0.28,  # Huge adorable eyes
+                pupil_radius=0.08,  # Big pupils
+                eye_separation=0.28,  # Close together (cute)
+                eye_height=0.40,  # Very high on head (baby proportions)
+                eye_depth=0.90,  # Protruding eyes
+                mouth_y=-0.10,  # Very high mouth (baby face)
+                mouth_height_base=0.03,  # Tiny O mouth
+                mouth_width_base=0.12,  # Small
+                nose_length=0.05,  # Button nose
+                nose_width=0.10,  # Wide button nose
+                eye_socket_smooth=0.15,  # Soft, baby-like
+                mouth_smooth=0.15,
+                nose_smooth=0.12,
             ),
             "elder": HeadGeometry(
                 head_radii=(0.9, 1.4, 0.9),  # Thinner face
@@ -652,6 +669,70 @@ class CharacterHead(Head):
                 nose_length=0.10,
                 eye_socket_smooth=0.08,
                 mouth_smooth=0.05,
+            ),
+            "monster": HeadGeometry(
+                head_radii=(1.3, 1.0, 1.2),  # Wide, squat head
+                eye_socket_radius=0.22,
+                eyeball_radius=0.16,
+                pupil_radius=0.04,  # Tiny pupils (creepy)
+                eye_separation=0.55,  # Eyes on sides of head
+                eye_height=0.15,  # Low-set eyes
+                eye_depth=0.75,  # Eyes stick out
+                mouth_y=-0.40,
+                mouth_height_base=0.15,  # HUGE gaping maw
+                mouth_width_base=0.40,  # Very wide
+                nose_length=0.18,  # Large nose
+                nose_width=0.18,  # Bulbous
+                eye_socket_smooth=0.08,
+                mouth_smooth=0.10,  # Toothy grin
+            ),
+            "cyclops": HeadGeometry(
+                head_radii=(1.1, 1.2, 1.0),  # Normal-ish head
+                eye_socket_radius=0.40,  # ONE GIANT EYE
+                eyeball_radius=0.35,  # Massive single eyeball
+                pupil_radius=0.10,  # Large pupil
+                eye_separation=0.0,  # ZERO separation = one eye!
+                eye_height=0.25,  # Centered eye
+                eye_depth=0.90,  # Bulging eye
+                mouth_y=-0.40,
+                mouth_height_base=0.08,
+                mouth_width_base=0.25,
+                nose_length=0.12,  # Normal nose below eye
+                nose_width=0.12,
+                eye_socket_smooth=0.12,
+            ),
+            "fish": HeadGeometry(
+                head_radii=(0.8, 1.0, 1.3),  # Deep from front-to-back
+                eye_socket_radius=0.18,
+                eyeball_radius=0.14,
+                pupil_radius=0.06,
+                eye_separation=0.60,  # Eyes on SIDES (fish)
+                eye_height=0.30,  # Mid-height
+                eye_depth=0.60,  # Eyes stick out to sides
+                mouth_y=-0.25,
+                mouth_height_base=0.12,  # Wide fish mouth
+                mouth_width_base=0.40,  # Very wide "O" mouth
+                nose_length=0.05,  # Minimal nose
+                nose_width=0.08,
+                eye_socket_smooth=0.08,
+                mouth_smooth=0.18,  # Smooth fish mouth
+            ),
+            "square": HeadGeometry(
+                head_radii=(1.0, 1.0, 1.0),  # Box head (like robot but different)
+                eye_socket_radius=0.15,
+                eyeball_radius=0.12,
+                pupil_radius=0.04,
+                eye_separation=0.40,
+                eye_height=0.25,
+                mouth_y=-0.35,
+                mouth_height_base=0.06,
+                mouth_width_base=0.30,
+                nose_length=0.08,
+                nose_width=0.08,
+                eye_socket_smooth=0.03,  # Hard, angular edges
+                mouth_smooth=0.03,
+                nose_smooth=0.03,
+                eyeball_smooth=0.03,
             ),
         }
         return presets.get(name, HeadGeometry())

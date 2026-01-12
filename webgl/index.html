@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid ASCII - WebGL Renderer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        #glCanvas {
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+
+        #controls {
+            width: 300px;
+            background: #111;
+            border-left: 2px solid #00ff00;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #00ff00;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #00ff00;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 8px;
+            background: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        select:hover, button:hover {
+            background: #003300;
+        }
+
+        .value-display {
+            font-size: 11px;
+            color: #00aa00;
+            text-align: right;
+        }
+
+        #fps {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border: 1px solid #00ff00;
+            font-size: 14px;
+        }
+
+        .info {
+            font-size: 11px;
+            color: #00aa00;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #003300;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container">
+            <canvas id="glCanvas" width="800" height="600"></canvas>
+            <div id="fps">FPS: 0</div>
+        </div>
+
+        <div id="controls">
+            <h1>Liquid ASCII</h1>
+            <p style="font-size: 11px; margin-bottom: 20px;">WebGL GPU-Accelerated Renderer</p>
+
+            <h2>Character</h2>
+            <div class="control-group">
+                <label for="character">Preset:</label>
+                <select id="character">
+                    <option value="default">Default</option>
+                    <option value="robot">Robot</option>
+                    <option value="alien">Alien</option>
+                    <option value="baby">Baby</option>
+                    <option value="cyclops">Cyclops</option>
+                    <option value="monster">Monster</option>
+                    <option value="fish">Fish</option>
+                    <option value="square">Square</option>
+                    <option value="round">Round</option>
+                    <option value="tall">Tall</option>
+                    <option value="wide">Wide</option>
+                    <option value="cute">Cute</option>
+                    <option value="skull">Skull</option>
+                    <option value="elder">Elder</option>
+                </select>
+            </div>
+
+            <h2>Camera</h2>
+            <div class="control-group">
+                <label for="cameraDistance">Distance: <span id="cameraDistanceValue" class="value-display">3.5</span></label>
+                <input type="range" id="cameraDistance" min="2" max="8" step="0.1" value="3.5">
+            </div>
+
+            <div class="control-group">
+                <label for="cameraFOV">FOV: <span id="cameraFOVValue" class="value-display">45°</span></label>
+                <input type="range" id="cameraFOV" min="20" max="90" step="1" value="45">
+            </div>
+
+            <h2>Lighting</h2>
+            <div class="control-group">
+                <label for="lighting">Preset:</label>
+                <select id="lighting">
+                    <option value="default">Default</option>
+                    <option value="dramatic">Dramatic</option>
+                    <option value="soft">Soft</option>
+                    <option value="metallic">Metallic</option>
+                    <option value="flat">Flat</option>
+                    <option value="noir">Noir</option>
+                    <option value="cartoon">Cartoon</option>
+                    <option value="subsurface">Subsurface</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="ambient">Ambient: <span id="ambientValue" class="value-display">0.10</span></label>
+                <input type="range" id="ambient" min="0" max="1" step="0.01" value="0.10">
+            </div>
+
+            <div class="control-group">
+                <label for="diffuse">Diffuse: <span id="diffuseValue" class="value-display">0.70</span></label>
+                <input type="range" id="diffuse" min="0" max="1" step="0.01" value="0.70">
+            </div>
+
+            <div class="control-group">
+                <label for="specular">Specular: <span id="specularValue" class="value-display">0.20</span></label>
+                <input type="range" id="specular" min="0" max="1" step="0.01" value="0.20">
+            </div>
+
+            <div class="control-group">
+                <label for="specularPower">Specular Power: <span id="specularPowerValue" class="value-display">16</span></label>
+                <input type="range" id="specularPower" min="2" max="128" step="1" value="16">
+            </div>
+
+            <h2>Cel-Shading</h2>
+            <div class="checkbox-group">
+                <input type="checkbox" id="celShading">
+                <label for="celShading">Enable Cel-Shading</label>
+            </div>
+
+            <div class="control-group">
+                <label for="celBands">Bands: <span id="celBandsValue" class="value-display">3</span></label>
+                <input type="range" id="celBands" min="2" max="8" step="1" value="3">
+            </div>
+
+            <h2>Animation</h2>
+            <div class="checkbox-group">
+                <input type="checkbox" id="idleAnimations" checked>
+                <label for="idleAnimations">Idle Animations (Breathing/Blinking)</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="autoRotate" checked>
+                <label for="autoRotate">Auto-Rotate</label>
+            </div>
+
+            <div class="control-group">
+                <label for="rotationSpeed">Speed: <span id="rotationSpeedValue" class="value-display">0.5</span></label>
+                <input type="range" id="rotationSpeed" min="0" max="2" step="0.1" value="0.5">
+            </div>
+
+            <button id="resetButton">Reset All</button>
+
+            <div class="info">
+                <strong>Phase 2A: WebGL GPU Acceleration</strong><br>
+                Target: 60+ FPS<br>
+                Compatible: All GPUs (AMD/Intel/NVIDIA)
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

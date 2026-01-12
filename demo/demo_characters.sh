@@ -33,8 +33,8 @@ source "$VENV_DIR/bin/activate"
 # Run demo
 cd "$PROJECT_DIR"
 
-# Array of characters to demo
-CHARACTERS=("default" "baby" "tall" "wide" "alien" "robot")
+# Array of characters to demo (updated with Phase 1 extreme variations)
+CHARACTERS=("default" "robot" "alien" "baby" "cyclops" "monster" "fish" "square")
 
 for char in "${CHARACTERS[@]}"; do
     echo -e "${GREEN}Character: ${char}${NC}"
@@ -44,28 +44,34 @@ for char in "${CHARACTERS[@]}"; do
         default)
             echo "Standard proportions, balanced features"
             ;;
-        baby)
-            echo "Round face, large eyes, small features"
-            ;;
-        tall)
-            echo "Elongated vertical proportions"
-            ;;
-        wide)
-            echo "Wider horizontal proportions"
+        robot)
+            echo "Cube-like head, hard mechanical edges, wide-set eyes"
             ;;
         alien)
-            echo "Large almond eyes, small mouth"
+            echo "2x head height, 3x eye size, very high features"
             ;;
-        robot)
-            echo "Mechanical, angular features"
+        baby)
+            echo "Perfect sphere head, gigantic eyes (kawaii!)"
+            ;;
+        cyclops)
+            echo "ONE GIANT centered eye - instantly recognizable!"
+            ;;
+        monster)
+            echo "Wide squat head with huge gaping mouth"
+            ;;
+        fish)
+            echo "Deep head, eyes on sides, wide O-mouth"
+            ;;
+        square)
+            echo "Angular box head with hard edges"
             ;;
     esac
 
     echo ""
     sleep 1
 
-    # Show animated version
-    python -m src.main --character "$char" --duration 5 --fps 30
+    # Show animated version with dramatic lighting for better visibility
+    python -m src.main --character "$char" --duration 4 --fps 15 --lighting dramatic
 
     echo ""
     echo "----------------------------------"
@@ -77,9 +83,22 @@ echo "=================================="
 echo "Characters gallery complete!"
 echo ""
 echo "All available characters:"
-echo "  • default - Standard proportions"
-echo "  • baby    - Round, cute features"
-echo "  • tall    - Elongated vertical"
-echo "  • wide    - Wider horizontal"
-echo "  • alien   - Large eyes, otherworldly"
-echo "  • robot   - Mechanical, angular"
+echo "  • default  - Standard proportions"
+echo "  • robot    - Cube-like, mechanical (NEW!)"
+echo "  • alien    - 2x height, huge eyes (UPDATED!)"
+echo "  • baby     - Perfect sphere, giant eyes (UPDATED!)"
+echo "  • cyclops  - ONE GIANT eye (NEW!)"
+echo "  • monster  - Wide with huge mouth (NEW!)"
+echo "  • fish     - Eyes on sides (NEW!)"
+echo "  • square   - Angular box head (NEW!)"
+echo "  • round    - Spherical head"
+echo "  • tall     - Elongated vertical"
+echo "  • wide     - Wider horizontal"
+echo "  • cute     - Large eyes, rounded"
+echo "  • skull    - Hollow eye sockets"
+echo "  • elder    - Thin face, prominent nose"
+echo ""
+echo "Try them with: python -m src.main --character <name>"
+echo "Add --wireframe for pure edge rendering!"
+echo "Add --lighting <preset> for different moods!"
+echo "Add --cel-shading for comic book style!"

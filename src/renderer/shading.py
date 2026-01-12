@@ -35,6 +35,66 @@ RAMPS = {
     "weather": " ⛅🌤️🌥️☁️🌫️🌪️⚡🔥",
 }
 
+# Lighting presets for different visual styles
+LIGHTING_PRESETS = {
+    "default": {
+        "ambient": 0.1,
+        "diffuse": 0.7,
+        "specular": 0.2,
+        "specular_power": 16.0,
+        "description": "Balanced lighting with moderate contrast",
+    },
+    "dramatic": {
+        "ambient": 0.05,  # Very dark shadows
+        "diffuse": 0.85,  # Strong directional light
+        "specular": 0.6,  # Bright highlights
+        "specular_power": 32.0,  # Sharp highlights
+        "description": "High contrast with deep shadows and bright highlights",
+    },
+    "soft": {
+        "ambient": 0.3,  # Bright ambient (fills in shadows)
+        "diffuse": 0.6,  # Moderate directional
+        "specular": 0.1,  # Subtle highlights
+        "specular_power": 8.0,  # Soft, wide highlights
+        "description": "Gentle lighting with soft shadows",
+    },
+    "metallic": {
+        "ambient": 0.08,  # Dark ambient
+        "diffuse": 0.5,  # Moderate diffuse
+        "specular": 0.9,  # Very bright specular
+        "specular_power": 64.0,  # Very sharp highlights (metallic sheen)
+        "description": "Metallic look with sharp, bright reflections",
+    },
+    "flat": {
+        "ambient": 0.8,  # Very bright ambient
+        "diffuse": 0.2,  # Minimal directional
+        "specular": 0.0,  # No highlights
+        "specular_power": 1.0,
+        "description": "Flat lighting with minimal shading",
+    },
+    "noir": {
+        "ambient": 0.02,  # Almost black shadows
+        "diffuse": 0.95,  # Very strong directional
+        "specular": 0.3,  # Moderate highlights
+        "specular_power": 24.0,  # Sharp highlights
+        "description": "Film noir style with stark contrast",
+    },
+    "cartoon": {
+        "ambient": 0.2,  # Moderate ambient
+        "diffuse": 0.8,  # Strong diffuse
+        "specular": 0.4,  # Noticeable highlights
+        "specular_power": 12.0,  # Medium sharpness
+        "description": "Cartoon-style lighting with clear separation",
+    },
+    "subsurface": {
+        "ambient": 0.15,  # Moderate ambient
+        "diffuse": 0.75,  # Strong diffuse
+        "specular": 0.15,  # Subtle specular
+        "specular_power": 10.0,  # Soft specular
+        "description": "Soft, organic lighting (skin-like)",
+    },
+}
+
 
 class ASCIIShader:
     """
@@ -50,6 +110,9 @@ class ASCIIShader:
         diffuse: float = 0.7,
         specular: float = 0.2,
         specular_power: float = 16.0,
+        lighting_preset: str | None = None,
+        cel_shading: bool = False,
+        cel_bands: int = 3,
     ):
         """
         Initialize the shader.
@@ -62,6 +125,9 @@ class ASCIIShader:
             diffuse: Diffuse light intensity (0-1)
             specular: Specular highlight intensity (0-1)
             specular_power: Specular exponent (higher = sharper highlights)
+            lighting_preset: Name of lighting preset (overrides ambient/diffuse/specular)
+            cel_shading: Enable cel-shading/toon style (posterize lighting)
+            cel_bands: Number of discrete lighting bands for cel-shading (2-8)
         """
         if custom_ramp:
             self.ramp = custom_ramp
@@ -71,14 +137,45 @@ class ASCIIShader:
             self.ramp = RAMPS["standard"]
 
         self.light_dir = normalize(_to_array(light_direction))
-        self.ambient = ambient
-        self.diffuse = diffuse
-        self.specular = specular
-        self.specular_power = specular_power
+        self.cel_shading = cel_shading
+        self.cel_bands = max(2, min(8, cel_bands))  # Clamp to 2-8 bands
+
+        # Apply lighting preset if specified (overrides individual parameters)
+        if lighting_preset and lighting_preset in LIGHTING_PRESETS:
+            preset = LIGHTING_PRESETS[lighting_preset]
+            self.ambient = preset["ambient"]
+            self.diffuse = preset["diffuse"]
+            self.specular = preset["specular"]
+            self.specular_power = preset["specular_power"]
+        else:
+            self.ambient = ambient
+            self.diffuse = diffuse
+            self.specular = specular
+            self.specular_power = specular_power
 
     def set_light_direction(self, direction: Vec3):
         """Update light direction."""
         self.light_dir = normalize(_to_array(direction))
+
+    def apply_lighting_preset(self, preset_name: str):
+        """
+        Apply a lighting preset.
+
+        Args:
+            preset_name: Name of the preset from LIGHTING_PRESETS
+
+        Raises:
+            ValueError: If preset_name is not found
+        """
+        if preset_name not in LIGHTING_PRESETS:
+            available = ", ".join(LIGHTING_PRESETS.keys())
+            raise ValueError(f"Unknown lighting preset '{preset_name}'. Available: {available}")
+
+        preset = LIGHTING_PRESETS[preset_name]
+        self.ambient = preset["ambient"]
+        self.diffuse = preset["diffuse"]
+        self.specular = preset["specular"]
+        self.specular_power = preset["specular_power"]
 
     def compute_lighting(self, normal: Vec3, view_dir: Vec3 | None = None) -> float:
         """
@@ -111,7 +208,14 @@ class ASCIIShader:
                 n_dot_h = max(0, np.dot(normal, half_vec))
                 intensity += self.specular * (n_dot_h**self.specular_power)
 
-        return min(max(intensity, 0.0), 1.0)
+        # Clamp intensity
+        intensity = min(max(intensity, 0.0), 1.0)
+
+        # Apply cel-shading posterization if enabled
+        if self.cel_shading:
+            intensity = self._posterize_intensity(intensity)
+
+        return intensity
 
     def compute_lighting_batch(
         self, normals: np.ndarray, view_dirs: np.ndarray | None = None
@@ -149,7 +253,46 @@ class ASCIIShader:
             spec_contrib = self.specular * (n_dot_h**self.specular_power)
             intensity = np.where(diffuse_mask, intensity + spec_contrib, intensity)
 
-        return np.clip(intensity, 0.0, 1.0)
+        # Clamp intensity
+        intensity = np.clip(intensity, 0.0, 1.0)
+
+        # Apply cel-shading posterization if enabled
+        if self.cel_shading:
+            intensity = self._posterize_intensity_batch(intensity)
+
+        return intensity
+
+    def _posterize_intensity(self, intensity: float) -> float:
+        """
+        Posterize intensity value to discrete bands (cel-shading effect).
+
+        Args:
+            intensity: Continuous intensity value (0-1)
+
+        Returns:
+            Quantized intensity value
+        """
+        # Quantize to discrete bands
+        band = int(intensity * self.cel_bands)
+        # Map back to 0-1 range, using the center of each band
+        return (band + 0.5) / self.cel_bands
+
+    def _posterize_intensity_batch(self, intensities: np.ndarray) -> np.ndarray:
+        """
+        Vectorized posterization for cel-shading.
+
+        Args:
+            intensities: Array of intensity values (0-1)
+
+        Returns:
+            Array of quantized intensity values
+        """
+        # Quantize to discrete bands
+        bands = (intensities * self.cel_bands).astype(int)
+        # Clamp to valid band range
+        bands = np.clip(bands, 0, self.cel_bands - 1)
+        # Map back to 0-1 range, using the center of each band
+        return (bands + 0.5) / self.cel_bands
 
     def intensity_to_char(self, intensity: float) -> str:
         """
