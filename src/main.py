@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
+from typing import Optional
 
 from .audio import AudioPlayer, EdgeTTSEngine, LipSyncGenerator
 from .chat import ChatSession
