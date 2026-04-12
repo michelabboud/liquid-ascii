@@ -46,7 +46,7 @@ classifiers = [
 ]
 dependencies = [
     "blessed>=1.25.0",
-    "numpy>=2.0.0",
+    "numpy>=2.4.4",
     "edge-tts>=7.2.0",
     "sounddevice>=0.5.3",
     "scipy>=1.11.0",
