@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-04
+
+### Changed
+- **Dependency consolidation — every declared dependency raised to its latest
+  stable floor**, replacing five stale Dependabot PRs (#3, #4, #5, #6, #7) with a
+  single deliberate update across `pyproject.toml`, `requirements.txt`,
+  `requirements-dev.txt` and `demo/requirements.txt`.
+  - Runtime: `blessed` 1.25→1.49, `numpy` 2.0→2.4.6, `edge-tts` 7.2.0→7.2.8,
+    `sounddevice` 0.5.3→0.5.6, `scipy` 1.11→1.17.1, `aiohttp` 3.9→3.14.3,
+    `requests` 2.31→2.34.2
+  - Dev: `pytest` 7→9.1.1, `pytest-asyncio` 0.21→1.4.0 (major),
+    `pytest-cov` 4→7.1.0 (major), `mypy` 1.x→2.3.1 (major), `ruff` 0.8→0.16.6,
+    `pre-commit` 3→4.6.2, `pytest-mock` 3.11→3.15.1
+  - Both majors (`pytest-asyncio`, `mypy`) were migration-checked against this
+    project's actual usage: no code or configuration change was required, and
+    test/lint/type output is byte-identical before and after.
+
+### Held
+- **`numpy` pinned to `>=2.4.6` and `scipy` to `>=1.17.1` rather than absolute
+  latest.** numpy 2.5.2 and scipy 1.18.1 both declare `requires-python >=3.12`,
+  but this project supports and CI-tests Python 3.11. Verified empirically:
+  `numpy>=2.5.2` makes the environment unsatisfiable under 3.11. Because the
+  manifests carry no upper bound, Python 3.12/3.13 still resolve to 2.5.2 and
+  1.18.1 naturally — the floor constrains nothing on newer interpreters.
+  **Expiry/trigger:** revisit if and when Python 3.11 support is dropped.
+
+### Maintenance
+- `dependabot.yml` moved to **grouped, monthly** updates and extended to cover
+  `demo/`, which had never been watched. The previous ungrouped weekly
+  configuration is what allowed five PRs to accumulate unreviewed.
+
+### Known issues (pre-existing, not introduced by this release)
+- Five tests fail on `main` and continue to fail here, all in rendering maths and
+  unrelated to any dependency: three in `tests/test_cel_shading.py` (posterize
+  returns values above 1.0) and two in `tests/test_lighting.py` (lighting
+  intensity does not vary with light direction).
+- `ruff check .` reports 48 errors and `ruff format --check .` flags 19 files, so
+  `lint.yml` fails on every push. Style-only, never previously enforced.
+
 ## [0.3.1] - 2026-01-11
 
 ### Fixed
