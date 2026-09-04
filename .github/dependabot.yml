@@ -23,6 +23,27 @@ updates:
         patterns:
           - "*"
 
+    ignore:
+      # HELD 2026-09-04: numpy 2.5.x and scipy 1.18.x both declare
+      # `requires-python >=3.12`, while this project declares `requires-python
+      # >=3.11` and CI tests 3.11. Verified against PyPI metadata and proven
+      # empirically: `numpy>=2.5.2` makes the 3.11 environment unsatisfiable.
+      #
+      # Expressed as a VERSION RANGE, not `update-types`. The break is not at a
+      # semver-major boundary - 2.4.6 -> 2.5.2 is a minor - it is at the release
+      # that moved the Python floor, so a semver-class rule would not catch it.
+      #
+      # Because the manifests carry no upper bound, Python 3.12/3.13 still
+      # resolve 2.5.2 and 1.18.1 naturally; this only stops the declared FLOOR
+      # from rising past what 3.11 can install.
+      #
+      # Owner: Michel (whether to drop Python 3.11 is a support decision).
+      # Revisit on that decision, or by 2026-12-04.
+      - dependency-name: "numpy"
+        versions: [">=2.5.0"]
+      - dependency-name: "scipy"
+        versions: [">=1.18.0"]
+
   # Added 2026-09-04: demo/requirements.txt was outside Dependabot's view.
   - package-ecosystem: "pip"
     directory: "/demo"
@@ -32,3 +53,24 @@ updates:
       demo-dependencies:
         patterns:
           - "*"
+
+    ignore:
+      # HELD 2026-09-04: numpy 2.5.x and scipy 1.18.x both declare
+      # `requires-python >=3.12`, while this project declares `requires-python
+      # >=3.11` and CI tests 3.11. Verified against PyPI metadata and proven
+      # empirically: `numpy>=2.5.2` makes the 3.11 environment unsatisfiable.
+      #
+      # Expressed as a VERSION RANGE, not `update-types`. The break is not at a
+      # semver-major boundary - 2.4.6 -> 2.5.2 is a minor - it is at the release
+      # that moved the Python floor, so a semver-class rule would not catch it.
+      #
+      # Because the manifests carry no upper bound, Python 3.12/3.13 still
+      # resolve 2.5.2 and 1.18.1 naturally; this only stops the declared FLOOR
+      # from rising past what 3.11 can install.
+      #
+      # Owner: Michel (whether to drop Python 3.11 is a support decision).
+      # Revisit on that decision, or by 2026-12-04.
+      - dependency-name: "numpy"
+        versions: [">=2.5.0"]
+      - dependency-name: "scipy"
+        versions: [">=1.18.0"]
