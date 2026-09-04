@@ -1,5 +1,5 @@
-blessed>=1.25.0
-numpy>=2.0.0
-edge-tts>=7.2.0
-sounddevice>=0.5.3
-scipy>=1.11.0
+blessed>=1.49.0
+numpy>=2.4.6
+edge-tts>=7.2.8
+sounddevice>=0.5.6
+scipy>=1.17.1

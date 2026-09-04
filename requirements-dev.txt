@@ -1,21 +1,21 @@
 # Development and Testing Dependencies
 
 # Testing Framework
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
-pytest-mock>=3.11.1
+pytest>=9.1.1
+pytest-asyncio>=1.4.0
+pytest-cov>=7.1.0
+pytest-mock>=3.15.1
 
 # Code Quality
-ruff>=0.1.0
-mypy>=1.7.0
-black>=23.11.0
+ruff>=0.16.6
+mypy>=2.3.1
+black>=26.5.1
 
 # Type Stubs
-types-setuptools
+types-setuptools>=84.0.0.20260812
 
 # Coverage
-coverage[toml]>=7.3.0
+coverage[toml]>=7.16.0
 
 # Benchmarking
-pytest-benchmark>=4.0.0
+pytest-benchmark>=5.3.0
