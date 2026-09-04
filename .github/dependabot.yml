@@ -5,7 +5,30 @@
 
 version: 2
 updates:
-  - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # Grouped + monthly, deliberately.
+  #
+  # This file previously declared a single ungrouped `pip` entry on a weekly
+  # cadence. That produced one PR per package per week and no PR at all for
+  # `demo/`, which was never watched — so an absent PR never meant "up to date",
+  # it meant nobody was looking. Five PRs accumulated unreviewed for four months.
+  #
+  # Grouping collapses an update round into one reviewable PR; monthly matches
+  # how often this project is actually touched.
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+
+  # Added 2026-09-04: demo/requirements.txt was outside Dependabot's view.
+  - package-ecosystem: "pip"
+    directory: "/demo"
+    schedule:
+      interval: "monthly"
+    groups:
+      demo-dependencies:
+        patterns:
+          - "*"
